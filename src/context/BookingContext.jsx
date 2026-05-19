@@ -1,8 +1,10 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { generateLastMinuteOffer } from '../services/offerGenerator';
 
 const BookingContext = createContext();
 
 const STORAGE_KEY = 'revpar_bookings';
+const OFFERS_STORAGE_KEY = 'revpar_last_minute_offers';
 
 const getStoredBookings = () => {
   try {
@@ -75,7 +77,28 @@ export const BookingProvider = ({ children }) => {
   };
 
   const cancelBooking = (bookingId) => {
+    // Get the booking before cancelling
+    const booking = state.bookings.find(b => b.id === bookingId);
+    
+    // Cancel in state
     dispatch({ type: 'CANCEL_BOOKING', payload: bookingId });
+    
+    // Check if eligible for last-minute offer (within 24h of check-in)
+    if (booking) {
+      const offer = generateLastMinuteOffer(booking);
+      if (offer) {
+        // Save to separate localStorage for admin dashboard
+        try {
+          const existing = JSON.parse(localStorage.getItem(OFFERS_STORAGE_KEY) || '[]');
+          localStorage.setItem(
+            OFFERS_STORAGE_KEY,
+            JSON.stringify([offer, ...existing])
+          );
+        } catch (e) {
+          console.error('Failed to save last-minute offer:', e);
+        }
+      }
+    }
   };
 
   const getBookingById = (id) => {

@@ -8,7 +8,8 @@ const Header = () => {
   const navLinks = [
     { to: '/', label: 'Home' },
     { to: '/hotels', label: 'Find Hotels' },
-    { to: '/my-bookings', label: 'My Bookings' }
+    { to: '/my-bookings', label: 'My Bookings' },
+    { to: '/admin/offers', label: 'Admin', admin: true }
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -28,17 +29,30 @@ const Header = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {navLinks.map(link => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={`font-medium transition-colors duration-200 ${
-                  isActive(link.to)
-                    ? 'text-accent-gold'
-                    : 'text-gray-700 hover:text-accent-navy'
-                }`}
-              >
-                {link.label}
-              </Link>
+              link.admin ? (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className="flex items-center gap-1.5 text-sm font-semibold bg-accent-gold/10 text-accent-gold border border-accent-gold/30 px-3 py-1.5 rounded-full hover:bg-accent-gold hover:text-white transition-all duration-200"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  {link.label}
+                </Link>
+              ) : (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={`font-medium transition-colors duration-200 ${
+                    isActive(link.to)
+                      ? 'text-accent-gold'
+                      : 'text-gray-700 hover:text-accent-navy'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              )
             ))}
           </nav>
 

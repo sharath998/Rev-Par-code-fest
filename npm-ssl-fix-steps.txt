@@ -1,0 +1,77 @@
+NPM SSL Fix Steps - SELF_SIGNED_CERT_IN_CHAIN
+
+1) Problem observed
+- npm install failed with error:
+  SELF_SIGNED_CERT_IN_CHAIN
+  request to https://registry.npmjs.org/... failed, reason: self-signed certificate in certificate chain
+
+2) Initial diagnostics performed
+- Checked npm/node availability (node -v, npm -v)
+- Inspected TLS chain for registry.npmjs.org:
+  openssl s_client -showcerts -servername registry.npmjs.org -connect registry.npmjs.org:443
+- Observed certificates issued by Netskope/Marriott inspection (e.g., caadmin.netskope.com / ca.marriott.goskope.com)
+  -> This indicates corporate TLS interception (proxy/SSL inspection).
+
+3) Locate/export corporate CA on macOS
+- GUI: Keychain Access → System keychain → Certificates → search for "netskope" or "caadmin" → Export as PEM
+- Terminal (preferred):
+  security find-certificate -c "caadmin.netskope.com" -p /Library/Keychains/System.keychain > ~/corp-ca.pem
+- If above fails, fallback technique (split all certs and grep):
+  security find-certificate -a -p /Library/Keychains/System.keychain > /tmp/all-certs.pem
+  awk '/-----BEGIN CERTIFICATE-----/{i++}{print > ("/tmp/cert" i ".pem")}' /tmp/all-certs.pem
+  for f in /tmp/cert*.pem; do
+    openssl x509 -noout -subject -issuer -in "$f" | grep -qi 'netskope' && cp "$f" ~/corp-ca.pem && break
+  done
+
+4) Verify exported PEM
+- Check file exists:
+  ls -lh ~/corp-ca.pem
+- Inspect certificate fields:
+  openssl x509 -noout -subject -issuer -dates -in ~/corp-ca.pem
+  (expect subject/issuer referencing netskope/caadmin)
+
+5) Configure npm/Node to trust the CA (secure)
+- Make npm use the PEM:
+  npm config set cafile "$HOME/corp-ca.pem"
+- OR set Node to trust extra certs for this shell/session:
+  export NODE_EXTRA_CA_CERTS="$HOME/corp-ca.pem"
+  (add to ~/.zshrc or ~/.bash_profile for persistence)
+
+6) Verify configuration
+- Confirm npm cafile value:
+  npm config get cafile
+- Try pinging registry (end-to-end TLS test):
+  npm ping
+- Retry install:
+  npm install
+
+7) Temporary insecure workaround (only if necessary)
+- Disable strict SSL (NOT recommended long-term):
+  npm config set strict-ssl false
+  npm install
+  npm config set strict-ssl true
+
+8) Additional checks & notes
+- Check proxy env vars: env | grep -i proxy
+- Ensure system clock/time is correct
+- If unable to export CA or errors persist, contact corporate IT/NetSkope team to request the root/intermediate CA PEM
+
+9) Commands summary (copy-paste):
+security find-certificate -c "caadmin.netskope.com" -p /Library/Keychains/System.keychain > ~/corp-ca.pem
+openssl x509 -noout -subject -issuer -dates -in ~/corp-ca.pem
+npm config set cafile "$HOME/corp-ca.pem"
+npm config get cafile
+npm ping
+npm install
+
+Temporary (insecure):
+npm config set strict-ssl false
+npm install
+npm config set strict-ssl true
+
+10) Final note
+- The secure path (export CA + set cafile or NODE_EXTRA_CA_CERTS) is recommended. Avoid disabling strict-ssl unless absolutely necessary and revert it immediately.
+
+Generated on: 2026-05-18
+Prepared by: svila120
+

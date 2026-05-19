@@ -1,131 +1,133 @@
-# RevPar - Premium Hotel Booking Application
+# RevPar — Hotel Booking + Last-Minute Offers Admin
 
-A production-ready React web application for hotel booking, inspired by Marriott Bonvoy's premium design aesthetic.
+A production-ready React hotel booking application with an integrated **Last-Minute Offers Admin Dashboard**.
+
+---
 
 ## Features
 
-- 🏨 **Home Page** - Hero banner with search, featured hotels and destinations
-- 🔍 **Hotel Listing** - Searchable and filterable hotel listings
-- 📖 **Hotel Details** - Image gallery, amenities, room selection
-- 📝 **Booking Flow** - Guest details form with validation
-- ✅ **Confirmation** - Booking confirmation with summary
-- 📋 **My Bookings** - View and cancel bookings
-- 💾 **Persistent Storage** - Bookings saved to localStorage
+### 🏨 Main Booking App
+- **Home** — Hero search, featured hotels, destinations
+- **Hotel Listing** — Filters (price, rating, amenities)
+- **Hotel Details** — Image gallery, rooms, amenities
+- **Booking Flow** — Guest form, validation, confirmation
+- **My Bookings** — View and cancel bookings
+
+### ⚡ Last-Minute Offers (Admin Module)
+- **Auto-generate offers** when bookings are cancelled < 24h before check-in
+- **Live countdown timers** (1-hour expiry)
+- **Notification tracking** (Sent / Seen / Clicked)
+- **Standalone admin dashboard** at `/admin/offers`
+- **Real-time stats** (Active, Claimed, Expired offers)
+
+---
 
 ## Tech Stack
 
-- **React 18** - UI library with hooks and context
-- **React Router v6** - Client-side routing
-- **Tailwind CSS** - Utility-first styling
-- **react-hot-toast** - Toast notifications
+- **React 18** with hooks & context
+- **React Router v6**
+- **Tailwind CSS** (premium Marriott-style design)
+- **react-hot-toast** for notifications
+- **localStorage** for persistence (swap with APIs later)
 
-## Project Structure
-
-```
-src/
-├── components/
-│   ├── booking/      # BookingCard, BookingForm
-│   ├── common/       # PageLoader, Skeleton
-│   ├── hotel/        # HotelCard, ImageGallery, RoomCard
-│   ├── layout/       # Header, Footer
-│   └── search/       # SearchBar, Filters
-├── context/
-│   ├── BookingContext.jsx   # Booking state management
-│   └── SearchContext.jsx    # Search state management
-├── data/
-│   └── hotels.js     # Mock hotel data
-├── pages/
-│   ├── Home.jsx
-│   ├── HotelListing.jsx
-│   ├── HotelDetails.jsx
-│   ├── Booking.jsx
-│   ├── Confirmation.jsx
-│   └── MyBookings.jsx
-├── services/
-│   └── api.js        # API-ready service layer
-├── App.jsx
-├── index.js
-└── index.css
-```
+---
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js 16+ and npm
-
-### Installation
-
+### Install dependencies
 ```bash
-# Clone or navigate to the project
 cd RevPar
-
-# Install dependencies
 npm install
+```
 
-# Start development server
+### Run development server
+```bash
 npm start
 ```
 
-The app will open at [http://localhost:3000](http://localhost:3000)
+App runs at: `http://localhost:3000`
 
-### Build for Production
+### Access Admin Dashboard
+Navigate to: `http://localhost:3000/admin/offers`  
+Or click **"Admin"** pill in the main header.
 
-```bash
-npm run build
-```
+---
 
-## API Integration
+## How Last-Minute Offers Work
 
-The app is structured for easy API integration. Replace mock data in `src/services/api.js`:
+### Trigger: User cancels a booking
+1. User goes to **My Bookings** (`/my-bookings`)
+2. Clicks **"Cancel Booking"**
 
-```javascript
-// Current (mock)
-export const hotelService = {
-  async getAll() {
-    await delay(300);
-    return { data: hotels, success: true };
-  }
-};
+### Automatic Check:
+- Is cancellation < **24 hours** before check-in?
+  - ✅ **Yes** → Generate offer
+  - ❌ **No** → Just cancel, no offer
 
-// Future (real API)
-export const hotelService = {
-  async getAll() {
-    const response = await fetch('/api/hotels');
-    return response.json();
-  }
-};
-```
+### Offer Details:
+- Discount: **25-45%** off (random)
+- Valid for: **1 hour** exactly
+- Notifications: **3-7 mock users** notified
+- Status: `Active` → `Expired` (after 1hr)
 
-## Key Features
+### View in Admin:
+- Navigate to `/admin/offers`
+- See all cancelled reservations with:
+  - Live countdown timer
+  - Offer pricing
+  - Notified users + engagement (Sent/Seen/Clicked)
 
-### Responsive Design
-- Mobile-first approach
-- Adaptive layouts for all screen sizes
+**See full flow:** [LAST_MINUTE_OFFERS_FLOW.md](./LAST_MINUTE_OFFERS_FLOW.md)
 
-### Premium UI
-- Elegant typography (Playfair Display + Inter)
-- Subtle shadows and smooth transitions
-- Consistent color palette (Navy, Gold accents)
+---
 
-### State Management
-- React Context for global state
-- localStorage persistence for bookings
-- URL-based search params
+## Testing the Full Flow
 
-### Form Validation
-- Client-side validation
-- Error feedback
-- Required field handling
+1. **Book a hotel:**
+   - Set check-in = today or tomorrow
+   - Complete booking
 
-## Mock Data
+2. **Cancel the booking:**
+   - Go to "My Bookings"
+   - Click "Cancel Booking"
 
-8 luxury hotels with:
-- Multiple images per hotel
-- Various room types
-- Amenities lists
-- Ratings and reviews
+3. **Check admin dashboard:**
+   - Click "Admin" in header (or go to `/admin/offers`)
+   - Your cancelled booking appears at the top
+   - Live countdown timer starts (1 hour)
+
+4. **Inspect offer:**
+   - Click the row
+   - See discounted price, notified users, engagement stats
+
+---
+
+## Storage (localStorage)
+
+| Key | Data |
+|-----|------|
+| `revpar_bookings` | User bookings (Booked / Cancelled) |
+| `revpar_last_minute_offers` | Auto-generated offers from cancellations |
+
+**To reset:** Clear localStorage in browser DevTools.
+
+---
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm start` | Start dev server (port 3000) |
+| `npm run build` | Production build |
+| `npm test` | Run tests |
+
+---
 
 ## License
 
 MIT
+
+---
+
+**Built with ❤️ using React + Tailwind CSS**  
+Premium Marriott-inspired design · Production-ready · API-ready architecture
