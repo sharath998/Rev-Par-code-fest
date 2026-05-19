@@ -4,17 +4,79 @@ import {
   cancelledReservations,
   getReservationById,
 } from '../data/lastMinuteOffers';
+import { users } from '../data/users';
 
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const OFFERS_STORAGE_KEY = 'revpar_last_minute_offers';
+const OFFERS_STORAGE_KEY = 'revpar_offers'; // Use same key as AppContext
+const BOOKINGS_STORAGE_KEY = 'revpar_bookings'; // To get cancellation details
 
-// Merge static mock data + dynamic localStorage offers
+// Get user by ID
+const getUserById = (id) => users.find(u => u.id === parseInt(id));
+
+// Convert AppContext offer format to admin display format
+const convertOfferToReservation = (offer, cancelledBooking) => {
+  const now = new Date();
+  const expiresAt = new Date(offer.expiresAt);
+  const isExpired = expiresAt <= now;
+  
+  let status = 'Active';
+  if (offer.status === 'claimed') status = 'Claimed';
+  else if (isExpired) status = 'Expired';
+  
+  return {
+    id: offer.id,
+    hotelName: offer.hotelName,
+    guestName: cancelledBooking?.guestDetails?.name || 'Guest',
+    checkInDate: offer.checkIn,
+    cancelledTime: offer.createdAt,
+    offer: {
+      id: offer.id,
+      hotelName: offer.hotelName,
+      hotelImage: offer.hotelImage,
+      location: offer.hotelLocation,
+      roomType: offer.roomType,
+      originalPrice: offer.originalPrice,
+      discountedPrice: offer.discountedPrice,
+      discountPercent: offer.discountPercent,
+      checkIn: offer.checkIn,
+      checkOut: offer.checkOut,
+      guests: offer.guests,
+      createdAt: offer.createdAt,
+      expiresAt: offer.expiresAt,
+      status,
+      notifications: offer.notifiedUserIds?.map((userId) => {
+        const user = getUserById(userId);
+        return {
+          userId,
+          userName: user?.name || `User ${userId}`,
+          email: user?.email || `user${userId}@revpar.com`,
+          sentAt: offer.createdAt,
+          status: offer.dismissedBy?.includes(userId) ? 'Dismissed' : 
+                  offer.claimedBy === userId ? 'Clicked' : 'Sent',
+        };
+      }) || [],
+    },
+  };
+};
+
+// Get all offers from AppContext storage
 const getAllOffers = () => {
   try {
-    const stored = JSON.parse(localStorage.getItem(OFFERS_STORAGE_KEY) || '[]');
-    // Combine: localStorage first (most recent), then static mocks
-    return [...stored, ...cancelledReservations];
+    const offers = JSON.parse(localStorage.getItem(OFFERS_STORAGE_KEY) || '[]');
+    const bookings = JSON.parse(localStorage.getItem(BOOKINGS_STORAGE_KEY) || '[]');
+    
+    // Convert offers to admin format
+    const converted = offers.map(offer => {
+      const cancelledBooking = bookings.find(b => 
+        b.status === 'cancelled' && 
+        b.hotel?.id === offer.hotelId
+      );
+      return convertOfferToReservation(offer, cancelledBooking);
+    });
+    
+    // Combine with static mock data
+    return [...converted, ...cancelledReservations];
   } catch {
     return cancelledReservations;
   }

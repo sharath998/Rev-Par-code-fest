@@ -1,171 +1,208 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import ImageGallery from '../components/hotel/ImageGallery';
-import RoomCard from '../components/hotel/RoomCard';
-import { DetailsSkeleton } from '../components/common/Skeleton';
+import React, { useState } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getHotelById } from '../data/hotels';
+import { useApp } from '../context/AppContext';
 
 const HotelDetails = () => {
   const { id } = useParams();
-  const [hotel, setHotel] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      const data = getHotelById(id);
-      setHotel(data);
-      setLoading(false);
-    }, 300);
-  }, [id]);
-
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <DetailsSkeleton />
-      </div>
-    );
-  }
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { currentUser, canUserBook, addBooking } = useApp();
+  
+  const hotel = getHotelById(parseInt(id));
+  const searchFilters = location.state?.searchFilters || { checkIn: '', checkOut: '', guests: 1 };
+  
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [guestDetails, setGuestDetails] = useState({
+    name: currentUser?.name || '',
+    email: currentUser?.email || '',
+    phone: '',
+  });
 
   if (!hotel) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <h1 className="text-2xl font-semibold text-gray-700 mb-4">Hotel not found</h1>
-        <Link to="/hotels" className="btn-primary">
-          Browse Hotels
-        </Link>
+      <div className="text-center py-12">
+        <h2 className="font-display text-3xl text-dark">Hotel Not Found</h2>
       </div>
     );
   }
 
+  const handleBookNow = () => {
+    if (!selectedRoom) {
+      alert('Please select a room type');
+      return;
+    }
+
+    if (!searchFilters.checkIn || !searchFilters.checkOut) {
+      alert('Please provide check-in and check-out dates');
+      return;
+    }
+
+    if (!canUserBook(currentUser.id)) {
+      alert('You already have an active booking. Cancel it first to make a new booking.');
+      return;
+    }
+
+    const result = addBooking({
+      userId: currentUser.id,
+      hotel: {
+        id: hotel.id,
+        name: hotel.name,
+        location: hotel.location,
+        thumbnail: hotel.thumbnail,
+      },
+      room: selectedRoom,
+      checkIn: searchFilters.checkIn,
+      checkOut: searchFilters.checkOut,
+      guests: searchFilters.guests,
+      guestDetails,
+    });
+
+    if (result.success) {
+      navigate('/overview');
+    } else {
+      alert(result.error);
+    }
+  };
+
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-          <Link to="/" className="hover:text-accent-navy">Home</Link>
-          <span>/</span>
-          <Link to="/hotels" className="hover:text-accent-navy">Hotels</Link>
-          <span>/</span>
-          <span className="text-accent-navy">{hotel.name}</span>
-        </nav>
+    <div>
+      {/* Hero Image */}
+      <div className="relative h-96 rounded-2xl overflow-hidden mb-8">
+        <img
+          src={hotel.images?.[0] || hotel.thumbnail}
+          alt={hotel.name}
+          className="w-full h-full object-cover"
+        />
+      </div>
 
-        {/* Image Gallery */}
-        <ImageGallery images={hotel.images} hotelName={hotel.name} />
-
-        {/* Hotel Info */}
-        <div className="mt-8 grid lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Header */}
-            <div>
-              <div className="flex items-start justify-between">
-                <div>
-                  <h1 className="font-display text-3xl md:text-4xl font-bold text-accent-navy">
-                    {hotel.name}
-                  </h1>
-                  <p className="text-gray-500 mt-1 flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    </svg>
-                    {hotel.address}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <div className="flex items-center gap-1 justify-end">
-                    <svg className="w-5 h-5 text-accent-gold" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                    <span className="font-semibold text-lg">{hotel.rating}</span>
-                  </div>
-                  <p className="text-sm text-gray-500">{hotel.reviewCount} reviews</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Description */}
-            <div className="card p-6">
-              <h2 className="font-display text-xl font-semibold text-accent-navy mb-4">
-                About This Hotel
-              </h2>
-              <p className="text-gray-600 leading-relaxed">{hotel.description}</p>
-            </div>
-
-            {/* Amenities */}
-            <div className="card p-6">
-              <h2 className="font-display text-xl font-semibold text-accent-navy mb-4">
-                Amenities
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {hotel.amenities.map(amenity => (
-                  <div key={amenity} className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary-50 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-accent-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <span className="text-gray-700">{amenity}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Rooms */}
-            <div>
-              <h2 className="font-display text-2xl font-semibold text-accent-navy mb-6">
-                Available Rooms
-              </h2>
-              <div className="space-y-4">
-                {hotel.rooms.map(room => (
-                  <RoomCard key={room.id} room={room} hotelId={hotel.id} />
-                ))}
-              </div>
-            </div>
+      {/* Hotel Info */}
+      <div className="bg-white rounded-2xl shadow-soft p-8 mb-8">
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h1 className="font-display text-4xl text-dark mb-2">
+              {hotel.name}
+            </h1>
+            <p className="text-gray-600 text-lg">{hotel.location}</p>
           </div>
-
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-24">
-              <div className="card p-6">
-                <div className="text-center mb-6">
-                  <span className="text-3xl font-bold text-accent-navy">${hotel.pricePerNight}</span>
-                  <span className="text-gray-500"> / night</span>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="text-sm text-gray-600">Free cancellation available</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="text-sm text-gray-600">No prepayment needed</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="text-sm text-gray-600">Best price guarantee</span>
-                  </div>
-                </div>
-
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h4 className="font-medium text-gray-700 mb-3">Need help?</h4>
-                  <p className="text-sm text-gray-500">
-                    Our concierge team is available 24/7 to assist with your booking.
-                  </p>
-                  <button className="btn-secondary w-full mt-4 text-sm">
-                    Contact Concierge
-                  </button>
-                </div>
-              </div>
-            </div>
+          <div className="flex items-center gap-1">
+            {[...Array(5)].map((_, i) => (
+              <svg
+                key={i}
+                className={`w-5 h-5 ${
+                  i < Math.floor(hotel.rating)
+                    ? 'text-gold fill-current'
+                    : 'text-gray-300 fill-current'
+                }`}
+                viewBox="0 0 20 20"
+              >
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            ))}
+            <span className="text-sm text-gray-600 ml-2">{hotel.rating}</span>
           </div>
         </div>
+
+        <p className="text-gray-700 leading-relaxed mb-6">
+          {hotel.description}
+        </p>
+
+        {/* Amenities */}
+        <div className="border-t border-gray-200 pt-6">
+          <h3 className="font-display text-xl text-dark mb-4">Amenities</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {hotel.amenities?.map((amenity, idx) => (
+              <div key={idx} className="flex items-center gap-2 text-gray-700">
+                <svg className="w-5 h-5 text-gold" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="text-sm">{amenity}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Room Selection */}
+      <div className="bg-white rounded-2xl shadow-soft p-8 mb-8">
+        <h3 className="font-display text-2xl text-dark mb-6">Select Room</h3>
+        <div className="space-y-4">
+          {hotel.rooms?.map((room, idx) => (
+            <div
+              key={idx}
+              onClick={() => setSelectedRoom(room)}
+              className={`border-2 rounded-xl p-6 cursor-pointer transition ${
+                selectedRoom?.type === room.type
+                  ? 'border-gold bg-gold/5'
+                  : 'border-gray-200 hover:border-gold/50'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h4 className="font-bold text-lg text-dark mb-1">
+                    {room.type}
+                  </h4>
+                  <p className="text-gray-600 text-sm mb-3">
+                    {room.description}
+                  </p>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span>Max {room.maxGuests} guests</span>
+                    <span>•</span>
+                    <span>{room.size}</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-500 mb-1">Per Night</p>
+                  <p className="text-3xl font-bold text-gold">${room.price}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Booking Form */}
+      <div className="bg-white rounded-2xl shadow-soft p-8">
+        <h3 className="font-display text-2xl text-dark mb-6">Guest Details</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <input
+            type="text"
+            placeholder="Full Name"
+            value={guestDetails.name}
+            onChange={(e) => setGuestDetails({ ...guestDetails, name: e.target.value })}
+            className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold"
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            value={guestDetails.email}
+            onChange={(e) => setGuestDetails({ ...guestDetails, email: e.target.value })}
+            className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold"
+          />
+          <input
+            type="tel"
+            placeholder="Phone Number"
+            value={guestDetails.phone}
+            onChange={(e) => setGuestDetails({ ...guestDetails, phone: e.target.value })}
+            className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold md:col-span-2"
+          />
+        </div>
+
+        <button
+          onClick={handleBookNow}
+          disabled={!selectedRoom}
+          className={`w-full py-4 rounded-lg font-semibold text-lg transition ${
+            selectedRoom
+              ? 'bg-gold text-white hover:bg-yellow-600'
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          }`}
+        >
+          {selectedRoom ? `Book Now - $${selectedRoom.price}` : 'Select a Room to Continue'}
+        </button>
       </div>
     </div>
   );

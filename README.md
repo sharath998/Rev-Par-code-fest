@@ -1,133 +1,196 @@
-# RevPar — Hotel Booking + Last-Minute Offers Admin
+# RevPar - Premium Hotel Booking Application
 
-A production-ready React hotel booking application with an integrated **Last-Minute Offers Admin Dashboard**.
+A production-ready React hotel booking application inspired by Marriott Bonvoy, featuring login-first architecture, personal dashboards, last-minute offers with live countdown timers, and admin monitoring.
 
----
+## 🎯 Overview
 
-## Features
-
-### 🏨 Main Booking App
-- **Home** — Hero search, featured hotels, destinations
-- **Hotel Listing** — Filters (price, rating, amenities)
-- **Hotel Details** — Image gallery, rooms, amenities
-- **Booking Flow** — Guest form, validation, confirmation
-- **My Bookings** — View and cancel bookings
-
-### ⚡ Last-Minute Offers (Admin Module)
-- **Auto-generate offers** when bookings are cancelled < 24h before check-in
-- **Live countdown timers** (1-hour expiry)
-- **Notification tracking** (Sent / Seen / Clicked)
-- **Standalone admin dashboard** at `/admin/offers`
-- **Real-time stats** (Active, Claimed, Expired offers)
+RevPar is a comprehensive hotel booking platform with:
+- **Login-first architecture** with 5 predefined users
+- **Personal overview dashboard** showing loyalty points and active bookings
+- **Last-minute offers system** that generates discounted deals when bookings are cancelled
+- **Live countdown timers** for time-sensitive offers
+- **Admin dashboard** for monitoring cancelled reservations and offer notifications
+- **Premium Marriott-style UI** with clean, modern design
 
 ---
 
-## Tech Stack
+## 🚀 Quick Start
 
-- **React 18** with hooks & context
-- **React Router v6**
-- **Tailwind CSS** (premium Marriott-style design)
-- **react-hot-toast** for notifications
-- **localStorage** for persistence (swap with APIs later)
+### Prerequisites
+- Node.js (v14+ recommended)
+- npm or yarn
 
----
+### Installation
 
-## Getting Started
-
-### Install dependencies
 ```bash
+# Navigate to project directory
 cd RevPar
-npm install
-```
 
-### Run development server
-```bash
+# Install dependencies
+npm install
+
+# Start development server
 npm start
 ```
 
-App runs at: `http://localhost:3000`
-
-### Access Admin Dashboard
-Navigate to: `http://localhost:3000/admin/offers`  
-Or click **"Admin"** pill in the main header.
+The app will open at `http://localhost:3000` showing the login screen.
 
 ---
 
-## How Last-Minute Offers Work
+## 👥 Login Users
 
-### Trigger: User cancels a booking
-1. User goes to **My Bookings** (`/my-bookings`)
-2. Clicks **"Cancel Booking"**
+Select any of these 5 predefined users to log in (no password required):
 
-### Automatic Check:
-- Is cancellation < **24 hours** before check-in?
-  - ✅ **Yes** → Generate offer
-  - ❌ **No** → Just cancel, no offer
-
-### Offer Details:
-- Discount: **25-45%** off (random)
-- Valid for: **1 hour** exactly
-- Notifications: **3-7 mock users** notified
-- Status: `Active` → `Expired` (after 1hr)
-
-### View in Admin:
-- Navigate to `/admin/offers`
-- See all cancelled reservations with:
-  - Live countdown timer
-  - Offer pricing
-  - Notified users + engagement (Sent/Seen/Clicked)
-
-**See full flow:** [LAST_MINUTE_OFFERS_FLOW.md](./LAST_MINUTE_OFFERS_FLOW.md)
+| User | Email | Tier | Loyalty Points |
+|------|-------|------|----------------|
+| Sarah Mitchell | sarah.mitchell@revpar.com | Gold | 12,500 |
+| James Rodriguez | james.rodriguez@revpar.com | Silver | 8,750 |
+| Emma Chen | emma.chen@revpar.com | Platinum | 15,200 |
+| Michael Thompson | michael.thompson@revpar.com | Silver | 6,400 |
+| Olivia Martinez | olivia.martinez@revpar.com | Platinum | 19,800 |
 
 ---
 
-## Testing the Full Flow
+## 📦 Core Features
 
-1. **Book a hotel:**
-   - Set check-in = today or tomorrow
-   - Complete booking
+### 1. **Login Screen**
+- Beautiful card-based user selection
+- Displays tier badges and loyalty points
+- Premium gradient avatars
 
-2. **Cancel the booking:**
-   - Go to "My Bookings"
-   - Click "Cancel Booking"
+### 2. **Overview Dashboard** (`/overview`)
+- User profile with loyalty points and tier status
+- Current active booking display (or clean empty state)
+- **Offer banner** when last-minute deals are available for the user
+- Live countdown timer showing offer expiry
+- Cancel booking button with confirmation modal
 
-3. **Check admin dashboard:**
-   - Click "Admin" in header (or go to `/admin/offers`)
-   - Your cancelled booking appears at the top
-   - Live countdown timer starts (1 hour)
+### 3. **Hotels Search & Booking** (`/hotels`)
+- Search filters: location, check-in, check-out, guests
+- Grid display of luxury hotels with images and ratings
+- Hotel details page with amenities and room selection
+- Guest details form
+- **One active booking per user** restriction
 
-4. **Inspect offer:**
-   - Click the row
-   - See discounted price, notified users, engagement stats
+### 4. **Cancellation Flow**
+- Confirmation modal showing cancellation fee (configurable)
+- Fee = 1 day's room charge (default)
+- Automatically generates discounted offer for other 4 users
+- Offer valid for exactly **1 hour**
+- Discount: **30%** (configurable)
 
----
+### 5. **Last-Minute Offers**
+When a user cancels their booking:
+1. Creates a discounted offer for remaining 4 users
+2. Offer appears as **prominent banner** on Overview page
+3. Shows hotel details, discounted price, and live countdown
+4. Expires after 1 hour automatically
 
-## Storage (localStorage)
-
-| Key | Data |
-|-----|------|
-| `revpar_bookings` | User bookings (Booked / Cancelled) |
-| `revpar_last_minute_offers` | Auto-generated offers from cancellations |
-
-**To reset:** Clear localStorage in browser DevTools.
-
----
-
-## Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm start` | Start dev server (port 3000) |
-| `npm run build` | Production build |
-| `npm test` | Run tests |
-
----
-
-## License
-
-MIT
+### 6. **Admin Dashboard** (`/admin/offers`)
+- View all cancelled reservations
+- See generated offers with status (Active/Claimed/Expired)
+- Track notified users (who, when, status)
+- Live countdown timers for active offers
 
 ---
 
-**Built with ❤️ using React + Tailwind CSS**  
-Premium Marriott-inspired design · Production-ready · API-ready architecture
+## 🎨 Design System
+
+### Colors
+```
+Background:  #F8F6F2 (Soft Cream)
+Primary:     #2C2C2C (Dark Charcoal)
+Accent:      #CBA135 (Luxury Gold)
+```
+
+### Typography
+- **Headings:** Playfair Display (serif) - Luxury feel
+- **Body:** Inter (sans-serif) - Clean readability
+
+---
+
+## ⚙️ Configuration
+
+Edit `/src/config/appConfig.js` to customize:
+
+```javascript
+export const appConfig = {
+  cancellationFeeDays: 1,         // Cancellation fee in days
+  offerValiditySeconds: 3600,     // 1 hour
+  lastMinuteDiscountPercent: 30,  // 30% off
+  maxBookingsPerUser: 1,          // One booking at a time
+};
+```
+
+---
+
+## 🔄 User Flow
+
+### Booking Flow
+1. Login → Select user
+2. Navigate to Hotels tab
+3. Select hotel → Choose room
+4. Fill guest details → Book
+5. Redirected to Overview with active booking
+
+### Cancellation → Offer Flow
+1. User A cancels booking
+2. Modal shows cancellation fee
+3. Booking removed, offer generated
+4. Other 4 users see offer banner
+5. Live countdown shows time remaining
+6. After 1 hour → offer expires
+
+---
+
+## 🏗️ Architecture
+
+### Tech Stack
+- React 18 (Create React App)
+- React Router v6
+- Tailwind CSS
+- Context API
+- localStorage (mock persistence)
+
+### Project Structure
+```
+src/
+├── admin/              # Admin module
+├── components/layout/  # MainLayout
+├── config/            # App configuration
+├── context/           # AppContext (auth + bookings + offers)
+├── data/              # Mock data (users, hotels)
+├── hooks/             # Custom hooks (useCountdown)
+├── pages/             # Login, Overview, Hotels, HotelDetails
+└── App.jsx            # Routes and providers
+```
+
+---
+
+## 📝 Available Scripts
+
+```bash
+npm start      # Development server
+npm run build  # Production build
+npm test       # Run tests
+```
+
+---
+
+## 🔌 API-Ready Structure
+
+Designed for easy backend integration. Simply replace AppContext localStorage calls with API endpoints.
+
+---
+
+## �� Documentation
+
+- **START_HERE.md** - Quick start guide
+- **QUICKSTART.md** - Detailed setup
+- **INSTALLATION_SUMMARY.md** - Feature overview
+- **WHAT_CHANGED.md** - Architecture details
+- **LAST_MINUTE_OFFERS_FLOW.md** - Flow documentation
+
+---
+
+**Ready to explore luxury hotel booking! 🏨✨**
