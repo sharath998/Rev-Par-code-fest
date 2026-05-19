@@ -73,62 +73,7 @@ const CountdownTimer = ({ expiresAt }) => {
   );
 };
 
-const BookingConfirmationModal = ({ booking, onClose }) => {
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 text-center animate-fade-in">
-        {/* Success Icon */}
-        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-
-        <h2 className="font-display text-4xl text-dark mb-3">
-          Booking Confirmed!
-        </h2>
-        <p className="text-gray-600 mb-6">
-          Your reservation has been successfully confirmed.
-        </p>
-
-        <div className="bg-cream rounded-xl p-6 mb-6 text-left">
-          <h3 className="font-bold text-lg text-dark mb-3">{booking.hotel.name}</h3>
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div>
-              <p className="text-gray-500">Check-in</p>
-              <p className="font-semibold text-dark">
-                {new Date(booking.checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-500">Check-out</p>
-              <p className="font-semibold text-dark">
-                {new Date(booking.checkOut).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-500">Room</p>
-              <p className="font-semibold text-dark">{booking.room.type}</p>
-            </div>
-            <div>
-              <p className="text-gray-500">Total</p>
-              <p className="font-bold text-gold text-lg">${booking.room.price}</p>
-            </div>
-          </div>
-        </div>
-
-        <button
-          onClick={onClose}
-          className="w-full py-4 bg-gold text-white rounded-lg font-semibold hover:bg-yellow-600 transition text-lg"
-        >
-          View My Bookings
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const OfferCard = ({ offer, onDismiss, onBook }) => {
+const OfferSpotlight = ({ offer, onDismiss, onExplore }) => {
   const [isDismissing, setIsDismissing] = useState(false);
 
   const handleDismiss = () => {
@@ -138,104 +83,157 @@ const OfferCard = ({ offer, onDismiss, onBook }) => {
 
   return (
     <div
-      className={`bg-gradient-to-br from-gold via-yellow-500 to-yellow-600 rounded-2xl shadow-xl p-6 text-white mb-4 transition-all duration-300 ${
+      className={`relative overflow-hidden bg-[#2C2C2C] rounded-[28px] shadow-soft-lg p-8 text-white transition-all duration-300 ${
         isDismissing ? 'opacity-0 translate-x-full' : 'opacity-100 translate-x-0'
       }`}
     >
-      {/* Close Button */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(203,161,53,0.4),_transparent_35%),linear-gradient(135deg,_rgba(255,255,255,0.04),_transparent)]" />
       <button
         onClick={handleDismiss}
-        className="absolute top-4 right-4 w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition group"
+        className="absolute right-5 top-5 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white/80 transition hover:bg-white/20 hover:text-white"
         title="Not interested"
       >
-        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
 
-      <div className="pr-8">
-        {/* Tag */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-            </svg>
-          </div>
-          <div>
-            <p className="font-bold text-sm uppercase tracking-wide">Last-Minute Offer</p>
-            <p className="text-white/80 text-xs">Exclusive Deal Just For You</p>
-          </div>
-        </div>
-
-        {/* Hotel Info */}
-        <h3 className="font-display text-3xl mb-2">
-          {offer.hotelName}
-        </h3>
-        <p className="text-white/90 mb-4 flex items-center gap-2">
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-          </svg>
-          {offer.hotelLocation}
-        </p>
-
-        {/* Pricing */}
-        <div className="flex items-baseline gap-3 mb-4">
-          <div className="flex items-baseline gap-2">
-            <span className="text-5xl font-bold">${offer.discountedPrice}</span>
-            <span className="text-white/70">/night</span>
-          </div>
-          <div className="flex flex-col items-start">
-            <span className="text-white/70 line-through text-lg">
-              ${offer.originalPrice}
+      <div className="relative z-10 grid gap-8 lg:grid-cols-[1.35fr_0.9fr]">
+        <div>
+          <div className="mb-5 flex items-center gap-3">
+            <span className="rounded-full bg-[#CBA135] px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-[#2C2C2C]">
+              Priority Offer
             </span>
-            <span className="bg-white text-gold px-3 py-1 rounded-full text-sm font-bold shadow-lg">
-              Save {offer.discountPercent}%
+            <span className="text-sm text-white/70">Available for the next hour only</span>
+          </div>
+
+          <h3 className="font-display text-4xl md:text-5xl leading-tight mb-3">
+            {offer.hotelName}
+          </h3>
+          <p className="mb-6 max-w-2xl text-base text-white/78">
+            A freshly released stay at {offer.hotelLocation}. Explore the property, review the room details, and decide at your pace before the clock runs out.
+          </p>
+
+          <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-white/85">
+            <span className="rounded-full border border-white/15 bg-white/10 px-4 py-2">
+              {offer.roomType}
+            </span>
+            <span className="rounded-full border border-white/15 bg-white/10 px-4 py-2">
+              {new Date(offer.checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              {' '}–{' '}
+              {new Date(offer.checkOut).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </span>
+            <span className="rounded-full border border-white/15 bg-white/10 px-4 py-2">
+              {offer.guests} Guest{offer.guests > 1 ? 's' : ''}
             </span>
           </div>
-        </div>
 
-        {/* Details */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4">
-          <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="flex flex-wrap items-end gap-4">
             <div>
-              <p className="text-white/70 mb-1">Check-in</p>
-              <p className="font-semibold">
-                {new Date(offer.checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              <p className="text-sm uppercase tracking-[0.2em] text-white/60">Offer rate</p>
+              <div className="flex items-end gap-3">
+                <span className="font-display text-5xl text-white">${offer.discountedPrice}</span>
+                <span className="pb-2 text-white/65">/ night</span>
+              </div>
+            </div>
+            <div className="pb-2">
+              <p className="text-sm text-white/55 line-through">${offer.originalPrice}</p>
+              <p className="inline-flex rounded-full bg-white px-3 py-1 text-sm font-semibold text-[#2C2C2C]">
+                Save {offer.discountPercent}%
               </p>
-            </div>
-            <div>
-              <p className="text-white/70 mb-1">Check-out</p>
-              <p className="font-semibold">
-                {new Date(offer.checkOut).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              </p>
-            </div>
-            <div>
-              <p className="text-white/70 mb-1">Room Type</p>
-              <p className="font-semibold">{offer.roomType}</p>
-            </div>
-            <div>
-              <p className="text-white/70 mb-1">Guests</p>
-              <p className="font-semibold">{offer.guests} Guest{offer.guests > 1 ? 's' : ''}</p>
             </div>
           </div>
         </div>
 
-        {/* Countdown & CTA */}
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-white/80 text-xs mb-2 uppercase tracking-wide font-semibold">Time Remaining</p>
+        <div className="rounded-[24px] border border-white/10 bg-white/8 p-6 backdrop-blur-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/55">Time remaining</p>
+          <div className="mt-3 mb-6">
             <CountdownTimer expiresAt={offer.expiresAt} />
           </div>
+
+          <div className="space-y-3 rounded-2xl bg-black/10 p-4 text-sm text-white/82">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <span>Check-in</span>
+              <span className="font-semibold">
+                {new Date(offer.checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </span>
+            </div>
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <span>Check-out</span>
+              <span className="font-semibold">
+                {new Date(offer.checkOut).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Selected room</span>
+              <span className="font-semibold">{offer.roomType}</span>
+            </div>
+          </div>
+
           <button
-            onClick={() => onBook(offer)}
-            className="px-8 py-4 bg-white text-gold rounded-xl font-bold hover:bg-cream transition shadow-2xl text-lg group flex items-center gap-2"
+            onClick={() => onExplore(offer)}
+            className="mt-6 w-full rounded-2xl bg-white px-6 py-4 text-base font-semibold text-[#2C2C2C] transition hover:bg-[#F8F6F2]"
           >
-            Book Now
-            <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
+            Explore This Offer
           </button>
+          <p className="mt-3 text-center text-xs text-white/60">
+            We’ll take you to the hotel page with dates and room preselected.
+          </p>
         </div>
+      </div>
+    </div>
+  );
+};
+
+const OfferListItem = ({ offer, onDismiss, onExplore }) => {
+  const [isDismissing, setIsDismissing] = useState(false);
+
+  const handleDismiss = () => {
+    setIsDismissing(true);
+    setTimeout(() => onDismiss(offer.id), 250);
+  };
+
+  return (
+    <div
+      className={`rounded-2xl border border-[#EAE7E0] bg-white p-5 shadow-soft transition-all duration-300 ${
+        isDismissing ? 'opacity-0 -translate-y-2' : 'opacity-100'
+      }`}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#9A8A57]">Offer</p>
+          <h4 className="font-display text-2xl text-dark">{offer.hotelName}</h4>
+          <p className="mt-1 text-sm text-gray-500">{offer.hotelLocation}</p>
+        </div>
+        <button
+          onClick={handleDismiss}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#EAE7E0] text-gray-500 transition hover:border-gray-300 hover:text-dark"
+          title="Not interested"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2 text-sm">
+        <span className="rounded-full bg-[#F8F6F2] px-3 py-1.5 text-dark">{offer.roomType}</span>
+        <span className="rounded-full bg-[#F8F6F2] px-3 py-1.5 text-dark">${offer.discountedPrice}/night</span>
+      </div>
+
+      <div className="mt-5 flex items-center justify-between gap-4">
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Expires in</p>
+          <div className="flex items-center gap-2 text-xs">
+            <CountdownTimer expiresAt={offer.expiresAt} />
+          </div>
+        </div>
+        <button
+          onClick={() => onExplore(offer)}
+          className="rounded-xl border border-[#2C2C2C] px-5 py-3 text-sm font-semibold text-[#2C2C2C] transition hover:bg-[#2C2C2C] hover:text-white"
+        >
+          View hotel
+        </button>
       </div>
     </div>
   );
@@ -343,15 +341,16 @@ const EmptyState = () => {
 };
 
 const Overview = () => {
-  const { currentUser, getUserBookings, getActiveOffersForUser, cancelBooking, dismissOffer, bookOffer } = useApp();
+  const navigate = useNavigate();
+  const { currentUser, getUserBookings, getActiveOffersForUser, cancelBooking, dismissOffer } = useApp();
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState(null);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [confirmedBooking, setConfirmedBooking] = useState(null);
 
   const userBookings = getUserBookings(currentUser?.id);
   const activeBooking = userBookings[0] || null;
   const offers = getActiveOffersForUser(currentUser?.id);
+  const primaryOffer = offers[0] || null;
+  const secondaryOffers = offers.slice(1);
 
   const handleCancelClick = (booking) => {
     setBookingToCancel(booking);
@@ -372,14 +371,18 @@ const Overview = () => {
     dismissOffer(offerId, currentUser?.id);
   };
 
-  const handleBookOffer = (offer) => {
-    const result = bookOffer(offer.id, currentUser?.id);
-    if (result.success) {
-      setConfirmedBooking(result.booking);
-      setShowConfirmation(true);
-    } else {
-      alert(result.error);
-    }
+  const handleExploreOffer = (offer) => {
+    navigate(`/hotel/${offer.hotelId}`, {
+      state: {
+        searchFilters: {
+          checkIn: offer.checkIn,
+          checkOut: offer.checkOut,
+          guests: offer.guests,
+        },
+        offer,
+        preselectedRoomType: offer.roomType,
+      },
+    });
   };
 
   return (
@@ -414,27 +417,40 @@ const Overview = () => {
       </div>
 
       {/* Active Offers */}
-      {offers.length > 0 && (
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 bg-gold rounded-full flex items-center justify-center">
-              <span className="text-white font-bold">{offers.length}</span>
+      {offers.length > 0 && primaryOffer && (
+        <div className="mb-10">
+          <div className="mb-5 flex items-end justify-between gap-4">
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.24em] text-[#9A8A57]">
+                Last-minute invitations
+              </p>
+              <h2 className="font-display text-3xl text-dark">
+                Exclusive Offer{offers.length > 1 ? 's' : ''} Curated For You
+              </h2>
             </div>
-            <h2 className="font-display text-2xl text-dark">
-              Exclusive Offer{offers.length > 1 ? 's' : ''} Available
-            </h2>
+            <div className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-dark shadow-soft">
+              {offers.length} active
+            </div>
           </div>
-          <div className="space-y-4">
-            {offers.map((offer) => (
-              <div key={offer.id} className="relative">
-                <OfferCard
+
+          <OfferSpotlight
+            offer={primaryOffer}
+            onDismiss={handleDismissOffer}
+            onExplore={handleExploreOffer}
+          />
+
+          {secondaryOffers.length > 0 && (
+            <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              {secondaryOffers.map((offer) => (
+                <OfferListItem
+                  key={offer.id}
                   offer={offer}
                   onDismiss={handleDismissOffer}
-                  onBook={handleBookOffer}
+                  onExplore={handleExploreOffer}
                 />
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -451,17 +467,6 @@ const Overview = () => {
           booking={bookingToCancel}
           onConfirm={handleConfirmCancel}
           onCancel={() => setShowCancelModal(false)}
-        />
-      )}
-
-      {/* Booking Confirmation Modal */}
-      {showConfirmation && confirmedBooking && (
-        <BookingConfirmationModal
-          booking={confirmedBooking}
-          onClose={() => {
-            setShowConfirmation(false);
-            setConfirmedBooking(null);
-          }}
         />
       )}
     </div>
