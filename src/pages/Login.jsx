@@ -25,7 +25,7 @@ const Login = () => {
     const result = login(credentials.username, credentials.password);
 
     if (result.success) {
-      navigate('/overview');
+      navigate('/hotels');
       return;
     }
 

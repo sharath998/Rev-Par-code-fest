@@ -39,18 +39,6 @@ const MainLayout = () => {
           {/* Navigation Tabs */}
           <nav className="flex gap-8 border-t border-gray-700 pt-4 pb-2">
             <NavLink
-              to="/overview"
-              className={({ isActive }) =>
-                `pb-2 border-b-2 transition font-semibold ${
-                  isActive
-                    ? 'border-gold text-gold'
-                    : 'border-transparent text-gray-400 hover:text-white'
-                }`
-              }
-            >
-              Overview
-            </NavLink>
-            <NavLink
               to="/hotels"
               className={({ isActive }) =>
                 `pb-2 border-b-2 transition font-semibold ${
@@ -63,6 +51,18 @@ const MainLayout = () => {
               Hotels
             </NavLink>
             <NavLink
+              to="/overview"
+              className={({ isActive }) =>
+                `pb-2 border-b-2 transition font-semibold ${
+                  isActive
+                    ? 'border-gold text-gold'
+                    : 'border-transparent text-gray-400 hover:text-white'
+                }`
+              }
+            >
+              Overview
+            </NavLink>
+            <NavLink
               to="/admin/offers"
               className={({ isActive }) =>
                 `pb-2 border-b-2 transition font-semibold ${
@@ -72,7 +72,7 @@ const MainLayout = () => {
                 }`
               }
             >
-              Admin Dashboard
+              Dashboard
             </NavLink>
           </nav>
         </div>

@@ -21,6 +21,11 @@ const ProtectedRoute = ({ children }) => {
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
+const RootRedirect = () => {
+  const { isAuthenticated } = useApp();
+  return <Navigate to={isAuthenticated ? '/hotels' : '/login'} replace />;
+};
+
 // ═══════════════════════════════════════════════════════════════════════════
 // App Routes
 // ═══════════════════════════════════════════════════════════════════════════
@@ -39,6 +44,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
+        <Route index element={<Navigate to="/hotels" replace />} />
         <Route path="/overview" element={<Overview />} />
         <Route path="/hotels" element={<Hotels />} />
         <Route path="/hotel/:id" element={<HotelDetails />} />
@@ -46,7 +52,7 @@ const AppRoutes = () => {
       </Route>
 
       {/* Default Redirect */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/" element={<RootRedirect />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
