@@ -19,6 +19,7 @@ const convertOfferToReservation = (offer, cancelledBooking) => {
   const now = new Date();
   const expiresAt = new Date(offer.expiresAt);
   const isExpired = expiresAt <= now;
+  const cancelledAt = cancelledBooking?.cancelledAt || offer.cancelledAt || offer.createdAt;
   
   let status = 'Active';
   if (offer.status === 'claimed') status = 'Claimed';
@@ -29,7 +30,8 @@ const convertOfferToReservation = (offer, cancelledBooking) => {
     hotelName: offer.hotelName,
     guestName: cancelledBooking?.guestDetails?.name || 'Guest',
     checkInDate: offer.checkIn,
-    cancelledTime: offer.createdAt,
+    cancelledAt,
+    roomType: offer.roomType,
     offer: {
       id: offer.id,
       hotelName: offer.hotelName,
@@ -70,15 +72,22 @@ const getAllOffers = () => {
     const converted = offers.map(offer => {
       const cancelledBooking = bookings.find(b => 
         b.status === 'cancelled' && 
-        b.hotel?.id === offer.hotelId
+        b.hotel?.id === offer.hotelId &&
+        b.checkIn === offer.checkIn &&
+        b.checkOut === offer.checkOut &&
+        b.room?.type === offer.roomType
       );
       return convertOfferToReservation(offer, cancelledBooking);
     });
     
     // Combine with static mock data
-    return [...converted, ...cancelledReservations];
+    return [...converted, ...cancelledReservations].sort(
+      (a, b) => new Date(b.cancelledAt).getTime() - new Date(a.cancelledAt).getTime()
+    );
   } catch {
-    return cancelledReservations;
+    return [...cancelledReservations].sort(
+      (a, b) => new Date(b.cancelledAt).getTime() - new Date(a.cancelledAt).getTime()
+    );
   }
 };
 

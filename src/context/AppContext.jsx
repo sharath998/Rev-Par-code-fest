@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getUserById, getUsersExcept } from '../data/users';
+import { getUserByCredentials, getUsersExcept } from '../data/users';
 import appConfig from '../config/appConfig';
 
 const AppContext = createContext();
@@ -36,6 +36,12 @@ const isOfferExpired = (offer) => {
   return new Date(offer.expiresAt) <= new Date();
 };
 
+const sanitizeUser = (user) => {
+  if (!user) return null;
+  const { password, ...safeUser } = user;
+  return safeUser;
+};
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Provider Component
 // ═══════════════════════════════════════════════════════════════════════════
@@ -62,13 +68,14 @@ export const AppProvider = ({ children }) => {
   // Auth Actions
   // ─────────────────────────────────────────────────────────────────────────
   
-  const login = (userId) => {
-    const user = getUserById(userId);
-    if (user) {
-      setCurrentUser(user);
-      return true;
+  const login = (username, password) => {
+    const user = getUserByCredentials(username, password);
+    if (!user) {
+      return { success: false, error: 'Invalid username or password' };
     }
-    return false;
+
+    setCurrentUser(sanitizeUser(user));
+    return { success: true };
   };
 
   const logout = () => {
@@ -107,6 +114,7 @@ export const AppProvider = ({ children }) => {
   const cancelBooking = (bookingId) => {
     const booking = bookings.find((b) => b.id === bookingId);
     if (!booking) return { success: false, error: 'Booking not found' };
+    const cancelledAt = new Date().toISOString();
 
     // Calculate cancellation fee
     const fee = booking.room.price * appConfig.cancellationFeeDays;
@@ -115,13 +123,13 @@ export const AppProvider = ({ children }) => {
     setBookings((prev) =>
       prev.map((b) =>
         b.id === bookingId
-          ? { ...b, status: 'cancelled', cancelledAt: new Date().toISOString(), cancellationFee: fee }
+          ? { ...b, status: 'cancelled', cancelledAt, cancellationFee: fee }
           : b
       )
     );
 
     // Generate offer for other users
-    const offer = generateOffer(booking);
+    const offer = generateOffer({ ...booking, cancelledAt });
     setOffers((prev) => [...prev, offer]);
 
     return { success: true, fee, offer };
@@ -150,6 +158,7 @@ export const AppProvider = ({ children }) => {
       checkIn: cancelledBooking.checkIn,
       checkOut: cancelledBooking.checkOut,
       guests: cancelledBooking.guests,
+      cancelledAt: cancelledBooking.cancelledAt,
       createdAt: now.toISOString(),
       expiresAt: expiresAt.toISOString(),
       notifiedUserIds: notifiedUsers,

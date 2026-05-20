@@ -314,7 +314,7 @@ const CurrentBooking = ({ booking, onCancel }) => {
   );
 };
 
-const EmptyState = () => {
+const EmptyState = ({ onExploreHotels }) => {
   return (
     <div className="bg-white rounded-2xl shadow-soft p-12 text-center mb-8">
       <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -333,9 +333,25 @@ const EmptyState = () => {
         </svg>
       </div>
       <h3 className="font-display text-2xl text-dark mb-2">No Active Bookings</h3>
-      <p className="text-gray-600">
+      {/* <p className="text-gray-600">
         You don't have any active bookings at the moment.
-      </p>
+      </p> */}
+      <button
+        onClick={onExploreHotels}
+        className="group mt-6 inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#2C2C2C] to-[#4a4a4a] px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-white shadow-lg shadow-black/10 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+      >
+        Explore Hotels
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#CBA135] text-[#2C2C2C] transition-transform duration-300 group-hover:translate-x-1">
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.5}
+              d="M13 7l5 5m0 0l-5 5m5-5H6"
+            />
+          </svg>
+        </span>
+      </button>
     </div>
   );
 };
@@ -350,7 +366,6 @@ const Overview = () => {
   const activeBooking = userBookings[0] || null;
   const offers = getActiveOffersForUser(currentUser?.id);
   const primaryOffer = offers[0] || null;
-  const secondaryOffers = offers.slice(1);
 
   const handleCancelClick = (booking) => {
     setBookingToCancel(booking);
@@ -385,6 +400,10 @@ const Overview = () => {
     });
   };
 
+  const handleExploreHotels = () => {
+    navigate('/hotels');
+  };
+
   return (
     <div>
       {/* User Header */}
@@ -394,7 +413,7 @@ const Overview = () => {
             <h1 className="font-display text-4xl text-dark mb-2">
               Welcome back, {currentUser?.name?.split(' ')[0]}
             </h1>
-            <p className="text-gray-600">{currentUser?.email}</p>
+            {/* <p className="text-gray-600">{currentUser?.email}</p> */}
           </div>
           <div className="text-right">
             <p className="text-sm text-gray-500 mb-1">Loyalty Points</p>
@@ -439,18 +458,6 @@ const Overview = () => {
             onExplore={handleExploreOffer}
           />
 
-          {secondaryOffers.length > 0 && (
-            <div className="mt-5 grid gap-4 lg:grid-cols-2">
-              {secondaryOffers.map((offer) => (
-                <OfferListItem
-                  key={offer.id}
-                  offer={offer}
-                  onDismiss={handleDismissOffer}
-                  onExplore={handleExploreOffer}
-                />
-              ))}
-            </div>
-          )}
         </div>
       )}
 
@@ -458,7 +465,7 @@ const Overview = () => {
       {activeBooking ? (
         <CurrentBooking booking={activeBooking} onCancel={() => handleCancelClick(activeBooking)} />
       ) : (
-        <EmptyState />
+        <EmptyState onExploreHotels={handleExploreHotels} />
       )}
 
       {/* Cancellation Modal */}
