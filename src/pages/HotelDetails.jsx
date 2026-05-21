@@ -155,6 +155,19 @@ const HotelDetails = () => {
 
   return (
     <div>
+      {/* Back to Hotels */}
+      <button
+        onClick={() => navigate('/hotels')}
+        className="group mb-6 inline-flex items-center gap-3 rounded-full border border-[#EAE7E0] bg-white px-5 py-2.5 text-sm font-semibold uppercase tracking-[0.18em] text-[#2C2C2C] shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:border-[#CBA135] hover:shadow-lg"
+      >
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#CBA135] text-[#2C2C2C] transition-transform duration-300 group-hover:-translate-x-1">
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+          </svg>
+        </span>
+        Back to Hotels
+      </button>
+
       {/* Hero Image */}
       <div className="relative h-96 rounded-2xl overflow-hidden mb-8">
         <img
