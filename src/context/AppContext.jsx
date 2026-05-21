@@ -171,17 +171,21 @@ export const AppProvider = ({ children }) => {
   // ─────────────────────────────────────────────────────────────────────────
 
   const getActiveOffersForUser = (userId) => {
-    return offers.filter(
-      (offer) =>
-        offer.notifiedUserIds.includes(userId) &&
-        offer.status === 'active' &&
-        !isOfferExpired(offer) &&
-        !offer.dismissedBy?.includes(userId)
-    );
+    return offers
+      .filter(
+        (offer) =>
+          offer.notifiedUserIds.includes(userId) &&
+          offer.status === 'active' &&
+          !isOfferExpired(offer) &&
+          !offer.dismissedBy?.includes(userId)
+      )
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   };
 
   const getAllActiveOffers = () => {
-    return offers.filter((offer) => offer.status === 'active' && !isOfferExpired(offer));
+    return offers
+      .filter((offer) => offer.status === 'active' && !isOfferExpired(offer))
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   };
 
   const dismissOffer = (offerId, userId) => {
