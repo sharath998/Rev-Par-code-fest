@@ -62,18 +62,6 @@ const MainLayout = () => {
             >
               Overview
             </NavLink>
-            <NavLink
-              to="/admin/offers"
-              className={({ isActive }) =>
-                `pb-2 border-b-2 transition font-semibold ${
-                  isActive
-                    ? 'border-gold text-gold'
-                    : 'border-transparent text-gray-400 hover:text-white'
-                }`
-              }
-            >
-              Dashboard
-            </NavLink>
           </nav>
         </div>
       </header>

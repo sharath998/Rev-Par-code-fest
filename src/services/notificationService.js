@@ -10,7 +10,9 @@
 // isn't installed yet.
 // ═══════════════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import toast from 'react-hot-toast';
+import OfferToastCard from '../components/notifications/OfferToastCard';
 
 let CapacitorRef = null;
 let LocalNotificationsRef = null;
@@ -101,6 +103,31 @@ export async function notify({ title, body, data }) {
   }
 
   // Web fallback
+  // If a full offer is included in `data`, render the branded card.
+  // Otherwise fall back to a plain text toast.
+  const offer = data && data.offer ? data.offer : null;
+  if (offer) {
+    toast.custom(
+      (t) =>
+        React.createElement(OfferToastCard, {
+          t,
+          offer,
+          onView: () => {
+            // Inside HashRouter — push the user to the hotel details page
+            try {
+              if (offer.hotelId != null) {
+                window.location.hash = '#/hotel/' + offer.hotelId;
+              }
+            } catch (_) {
+              /* ignore */
+            }
+          },
+        }),
+      { duration: 60000, position: 'top-right' }
+    );
+    return;
+  }
+
   toast.success(title + ' — ' + body, { duration: 60000 });
 }
 

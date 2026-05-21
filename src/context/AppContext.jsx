@@ -1,6 +1,14 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { getUserByCredentials, getUsersExcept } from '../data/users';
 import appConfig from '../config/appConfig';
+import {
+  connectSocket,
+  disconnectSocket,
+  emitCancellation,
+  onOfferEvents,
+} from '../services/socketService';
+import { notify, ensurePermission } from '../services/notificationService';
+import { rankUsersForOffer } from '../services/ranker';
 
 const AppContext = createContext();
 
@@ -65,17 +73,96 @@ export const AppProvider = ({ children }) => {
   }, [offers]);
 
   // ─────────────────────────────────────────────────────────────────────────
+  // Realtime: connect to Socket.IO when logged in, receive offers from
+  // other users' cancellations and fire a branded notification.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const currentUserRef = useRef(null);
+  useEffect(() => {
+    currentUserRef.current = currentUser;
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser) {
+      disconnectSocket();
+      return undefined;
+    }
+
+    connectSocket(currentUser.id);
+    ensurePermission();
+
+    const mergeIncomingOffer = (offer) => {
+      if (!offer || !offer.id) return false;
+      const me = currentUserRef.current;
+      if (!me) return false;
+      const targets = Array.isArray(offer.notifiedUserIds) ? offer.notifiedUserIds : [];
+      if (!targets.map(String).includes(String(me.id))) return false;
+
+      let isNew = false;
+      setOffers((prev) => {
+        if (prev.some((o) => o.id === offer.id)) return prev;
+        isNew = true;
+        return [...prev, offer];
+      });
+      return isNew;
+    };
+
+    const unsubscribe = onOfferEvents(
+      (offer) => {
+        const isNew = mergeIncomingOffer(offer);
+        if (isNew) {
+          notify({
+            title: 'Last-minute deal!',
+            body: `${offer.discountPercent}% off at ${offer.hotelName} — book before it expires`,
+            data: { offerId: offer.id, hotelId: offer.hotelId, offer },
+          });
+        }
+      },
+      (list) => {
+        if (!Array.isArray(list)) return;
+        list.forEach((o) => mergeIncomingOffer(o));
+      }
+    );
+
+    return () => {
+      try {
+        unsubscribe && unsubscribe();
+      } catch (_) {
+        /* ignore */
+      }
+    };
+  }, [currentUser]);
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Auth Actions
   // ─────────────────────────────────────────────────────────────────────────
   
   const login = (username, password) => {
+    const u = String(username || '').trim().toLowerCase();
+    const p = String(password || '');
+
+    // Hardcoded admin account (demo only — replace with a real backend role)
+    if (u === 'admin' && p === 'admin') {
+      const adminUser = {
+        id: 0,
+        name: 'Admin',
+        username: 'admin',
+        email: 'admin@revpar.com',
+        tier: 'Admin',
+        loyaltyPoints: 0,
+        isAdmin: true,
+      };
+      setCurrentUser(adminUser);
+      return { success: true, isAdmin: true };
+    }
+
     const user = getUserByCredentials(username, password);
     if (!user) {
       return { success: false, error: 'Invalid username or password' };
     }
 
     setCurrentUser(sanitizeUser(user));
-    return { success: true };
+    return { success: true, isAdmin: false };
   };
 
   const logout = () => {
@@ -129,8 +216,32 @@ export const AppProvider = ({ children }) => {
     );
 
     // Generate offer for other users
-    const offer = generateOffer({ ...booking, cancelledAt });
+    const baseOffer = generateOffer({ ...booking, cancelledAt });
+
+    // ── AI matching ─────────────────────────────────────────────────────
+    // Rank every eligible (non-canceller) user by how well they match this
+    // specific offer right now, then keep only the top-K as the people we
+    // actually notify. Stash the full ranking on the offer so the admin
+    // dashboard can show the breakdown.
+    const allCandidates = baseOffer.notifiedUserIds;
+    const ranking = rankUsersForOffer(allCandidates, baseOffer);
+    const topK = appConfig.topK || 2;
+    const winners = ranking.slice(0, topK).map((r) => r.userId);
+    const offer = {
+      ...baseOffer,
+      notifiedUserIds: winners,        // who actually gets the push
+      candidateUserIds: allCandidates, // the original pool (for admin)
+      ranking,                         // full sorted breakdown
+    };
+
     setOffers((prev) => [...prev, offer]);
+
+    // Fan out to top-K users via Socket.IO (no-op if backend offline)
+    try {
+      emitCancellation(offer, booking.userId);
+    } catch (e) {
+      console.warn('emitCancellation failed:', e);
+    }
 
     return { success: true, fee, offer };
   };
@@ -257,6 +368,7 @@ export const AppProvider = ({ children }) => {
     // Auth
     currentUser,
     isAuthenticated: !!currentUser,
+    isAdmin: !!(currentUser && currentUser.isAdmin),
     login,
     logout,
 
