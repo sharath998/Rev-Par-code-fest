@@ -1,5 +1,30 @@
 export const hotels = [
   {
+    id: 9,
+    name: "ITC Kohinoor",
+    location: "Hyderabad, India",
+    address: "Plot No. 5, Hitech City Main Road, Madhapur, Hyderabad, Telangana 500081, India",
+    description: "ITC Kohinoor is a luxury hotel set in the heart of Hyderabad's HITEC City, inspired by the legendary Kohinoor diamond. Featuring stunning contemporary architecture, world-class dining, an award-winning spa, and the iconic Sapphire rooftop bar, it blends Nizami heritage with modern indulgence in true ITC tradition.",
+    rating: 4.8,
+    reviewCount: 2156,
+    pricePerNight: 320,
+    images: [
+      "https://lh3.googleusercontent.com/p/AF1QipP4WC38myuablrr_7zQwdQtetsjx_xDgBQsxwbR=s1360-w1360-h1020-rw",
+      "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=800",
+      "https://images.unsplash.com/photo-1568084680786-a84f91d1153c?w=800",
+      "https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=800",
+      "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800"
+    ],
+    thumbnail: "https://lh3.googleusercontent.com/p/AF1QipP4WC38myuablrr_7zQwdQtetsjx_xDgBQsxwbR=s400-w400-h300-rw",
+    amenities: ["Free WiFi", "Rooftop Bar", "Luxury Spa", "Fitness Center", "Multi-Cuisine Restaurants", "Outdoor Pool", "Concierge", "Valet Parking", "Business Center", "Airport Shuttle"],
+    featured: true,
+    rooms: [
+      { id: 901, type: "Executive Club Room", price: 320, maxGuests: 2, beds: "1 King Bed", size: "420 sq ft", features: ["City View", "Club Lounge Access", "Complimentary Breakfast"] },
+      { id: 902, type: "Kohinoor Suite", price: 580, maxGuests: 3, beds: "1 King Bed + Sofa", size: "780 sq ft", features: ["Skyline View", "Separate Living Room", "Butler Service"] },
+      { id: 903, type: "Presidential Suite", price: 1450, maxGuests: 4, beds: "2 King Beds", size: "1800 sq ft", features: ["Panoramic City Views", "Private Dining", "Personal Butler", "Jacuzzi"] }
+    ]
+  },
+  {
     id: 1,
     name: "The Ritz-Carlton New York",
     location: "New York, NY",
@@ -144,30 +169,6 @@ export const hotels = [
     ]
   },
   {
-    id: 7,
-    name: "Aman Tokyo",
-    location: "Tokyo, Japan",
-    address: "The Otemachi Tower, 1-5-6 Otemachi, Chiyoda-ku, Tokyo",
-    description: "A sanctuary of serenity in the heart of Tokyo, Aman Tokyo blends traditional Japanese aesthetics with contemporary luxury, offering panoramic city views and unparalleled tranquility.",
-    rating: 4.9,
-    reviewCount: 1432,
-    pricePerNight: 1400,
-    images: [
-      "https://images.unsplash.com/photo-1590073242678-70ee3fc28f8e?w=800",
-      "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800",
-      "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800",
-      "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800"
-    ],
-    thumbnail: "https://images.unsplash.com/photo-1590073242678-70ee3fc28f8e?w=400",
-    amenities: ["Spa", "Pool", "Japanese Garden", "Tea Room", "Yoga Studio", "Fine Dining", "Library", "Concierge"],
-    featured: true,
-    rooms: [
-      { id: 701, type: "Deluxe Room", price: 1400, maxGuests: 2, beds: "1 King Bed", size: "710 sq ft", features: ["City View", "Furo Bath", "Shoji Screens"] },
-      { id: 702, type: "Corner Suite", price: 2200, maxGuests: 3, beds: "1 King Bed + Sofa", size: "1200 sq ft", features: ["Dual Views", "Living Room", "Private Garden"] },
-      { id: 703, type: "Aman Suite", price: 4500, maxGuests: 4, beds: "2 King Beds", size: "2100 sq ft", features: ["360° Views", "Private Onsen", "Tea Ceremony Room"] }
-    ]
-  },
-  {
     id: 8,
     name: "Belmond Hotel Splendido",
     location: "Portofino, Italy",
@@ -190,7 +191,7 @@ export const hotels = [
       { id: 802, type: "Sea View Suite", price: 2400, maxGuests: 3, beds: "1 King Bed + Daybed", size: "600 sq ft", features: ["Sea View", "Living Area", "Private Balcony"] },
       { id: 803, type: "Splendido Suite", price: 4200, maxGuests: 4, beds: "2 King Beds", size: "1100 sq ft", features: ["Panoramic Views", "Multiple Terraces", "Butler Service"] }
     ]
-  }
+  },
 ];
 
 export const featuredDestinations = [

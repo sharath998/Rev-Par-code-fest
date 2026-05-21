@@ -62,7 +62,7 @@ const MainLayout = () => {
             >
               Overview
             </NavLink>
-            <NavLink
+            {/* <NavLink
               to="/admin/offers"
               className={({ isActive }) =>
                 `pb-2 border-b-2 transition font-semibold ${
@@ -73,7 +73,7 @@ const MainLayout = () => {
               }
             >
               Dashboard
-            </NavLink>
+            </NavLink> */}
           </nav>
         </div>
       </header>

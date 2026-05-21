@@ -41,15 +41,6 @@ const OfferSpotlight = ({ offer, onDismiss, onExplore }) => {
       }`}
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(203,161,53,0.4),_transparent_35%),linear-gradient(135deg,_rgba(255,255,255,0.04),_transparent)]" />
-      <button
-        onClick={handleDismiss}
-        className="absolute right-5 top-5 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white/80 transition hover:bg-white/20 hover:text-white"
-        title="Not interested"
-      >
-        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
 
       <div className="relative z-10 grid gap-8 lg:grid-cols-[1.35fr_0.9fr]">
         <div>
@@ -57,7 +48,7 @@ const OfferSpotlight = ({ offer, onDismiss, onExplore }) => {
             <span className="rounded-full bg-[#CBA135] px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-[#2C2C2C]">
               Priority Offer
             </span>
-            <span className="text-sm text-white/70">Available for the next hour only</span>
+            {/* <span className="text-sm text-white/70">Available for the next hour only</span> */}
           </div>
 
           <h3 className="font-display text-4xl md:text-5xl leading-tight mb-3">
