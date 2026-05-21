@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { users } from '../data/users';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -95,35 +94,6 @@ const Login = () => {
               </button>
             </form>
 
-            <div className="mt-8 rounded-[28px] border border-[#ECE6DA] bg-[#FBFAF7] p-5">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9A8A57]">
-                    Demo credentials
-                  </p>
-                  <p className="mt-1 text-sm text-gray-600">
-                    Use any of these accounts to explore the app.
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {users.map((user) => (
-                  <div
-                    key={user.id}
-                    className="flex flex-col rounded-2xl border border-[#EAE4D7] bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div>
-                      <p className="font-medium text-dark">{user.name}</p>
-                      <p className="text-sm text-gray-500">{user.username}</p>
-                    </div>
-                    <p className="mt-2 text-sm font-semibold text-[#9A8A57] sm:mt-0">
-                      {user.password}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
 
