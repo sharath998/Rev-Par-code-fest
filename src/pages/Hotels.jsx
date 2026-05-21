@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { hotels } from '../data/hotels';
 import { useApp } from '../context/AppContext';
@@ -26,13 +26,20 @@ const CountdownTimer = ({ expiresAt }) => {
   );
 };
 
-const OfferSpotlight = ({ offer, onDismiss, onExplore }) => {
+const OfferSpotlight = ({ offer, onDismiss, onExplore, onExpire }) => {
   const [isDismissing, setIsDismissing] = useState(false);
+  const { isExpired } = useCountdown(offer.expiresAt);
+
+  useEffect(() => {
+    if (isExpired && onExpire) onExpire(offer.id);
+  }, [isExpired, offer.id, onExpire]);
 
   const handleDismiss = () => {
     setIsDismissing(true);
     setTimeout(() => onDismiss(offer.id), 300);
   };
+
+  if (isExpired) return null;
 
   return (
     <div
@@ -156,6 +163,11 @@ const Hotels = () => {
     dismissOffer(offerId, currentUser?.id);
   };
 
+  const [, setExpiredTick] = useState(0);
+  const handleOfferExpire = useCallback(() => {
+    setExpiredTick((t) => t + 1);
+  }, []);
+
   const handleExploreOffer = (offer) => {
     navigate(`/hotel/${offer.hotelId}`, {
       state: {
@@ -226,6 +238,7 @@ const Hotels = () => {
             offer={primaryOffer}
             onDismiss={handleDismissOffer}
             onExplore={handleExploreOffer}
+            onExpire={handleOfferExpire}
           />
         </div>
       )}
