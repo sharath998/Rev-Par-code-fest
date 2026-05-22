@@ -282,13 +282,18 @@ const OfferListItem = ({ offer, onDismiss, onExplore }) => {
   );
 };
 
-const NightsHalfClock = ({ nights }) => {
+const NightsHalfClock = ({ nights, size = 180 }) => {
   const maxNights = 7;
   const ratio = Math.max(0, Math.min(nights / maxNights, 1));
 
   const cx = 110;
   const cy = 110;
   const r = 80;
+
+  // Text scales proportionally with the size prop (180 = original baseline)
+  const numberFontSize = Math.round(size * 0.22);   // big nights number
+  const labelFontSize  = Math.max(9, Math.round(size * 0.055)); // "Night/Nights" + "Stay Duration"
+  const numberTopPx    = Math.round(size * 0.14);   // distance from top to number
 
   const polar = (angleDeg) => ({
     x: cx + r * Math.cos((angleDeg * Math.PI) / 180),
@@ -313,7 +318,7 @@ const NightsHalfClock = ({ nights }) => {
   });
 
   return (
-    <div className="relative w-[180px] select-none">
+    <div className="relative select-none" style={{ width: `${size}px` }}>
       <svg viewBox="0 0 220 140" className="w-full overflow-visible">
         <defs>
           <linearGradient id="nightsGoldArc" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -374,21 +379,45 @@ const NightsHalfClock = ({ nights }) => {
         <circle cx={cx} cy={cy} r="4" fill="#2C2C2C" />
       </svg>
 
-      <div className="pointer-events-none absolute inset-x-0 top-6 flex flex-col items-center">
-        <span className="font-display text-4xl font-bold leading-none text-[#2C2C2C] drop-shadow-[0_2px_14px_rgba(203,161,53,0.4)]">
+      <div
+        className="pointer-events-none absolute inset-x-0 flex flex-col items-center"
+        style={{ top: `${numberTopPx}px` }}
+      >
+        <span
+          className="font-display font-bold leading-none text-[#2C2C2C] drop-shadow-[0_2px_14px_rgba(203,161,53,0.4)]"
+          style={{ fontSize: `${numberFontSize}px` }}
+        >
           {nights}
         </span>
-        <span className="mt-1 text-[9px] font-bold uppercase tracking-[0.32em] text-[#9A8A57]">
+        <span
+          className="mt-1 font-bold uppercase tracking-[0.32em] text-[#9A8A57]"
+          style={{ fontSize: `${labelFontSize}px` }}
+        >
           {nights === 1 ? 'Night' : 'Nights'}
         </span>
       </div>
 
-      <p className="-mt-2 text-center text-[9px] font-semibold uppercase tracking-[0.28em] text-[#9A8A57]">
+      <p
+        className="-mt-2 text-center font-semibold uppercase tracking-[0.28em] text-[#9A8A57]"
+        style={{ fontSize: `${labelFontSize}px` }}
+      >
         Stay Duration
       </p>
     </div>
   );
 };
+
+// ─── Tweakable: vertical offset of the nights gauge above the Cancel button ──
+// Use negative values to pull the gauge UP (e.g. -32, -64, -80, -96, -120).
+// Use positive values to push it DOWN. Unit: pixels.
+const NIGHTS_GAUGE_OFFSET_PX = -94;
+
+// Gap (in pixels) between the night gauge and the Cancel Booking button.
+const NIGHTS_GAUGE_BUTTON_GAP_PX = 34;
+
+// Overall width (in pixels) of the night gauge. Internal text scales with it.
+// Baseline was 180. Try 220, 260, 300, 360 for bigger.
+const NIGHTS_GAUGE_SIZE_PX = 260;
 
 const CurrentBooking = ({ booking, onCancel }) => {
   const checkInDate = new Date(booking.checkIn).toLocaleDateString('en-US', {
@@ -452,17 +481,21 @@ const CurrentBooking = ({ booking, onCancel }) => {
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-6">
+          <div className="flex items-start justify-between gap-6">
             <div>
               <p className="text-xs text-gray-500 mb-1">Total Price</p>
               <p className="text-2xl font-bold text-gold">
                 ${booking.room.price}
               </p>
             </div>
-            <div className="flex flex-col items-center gap-3">
-              <div className="-mt-16">
-                <NightsHalfClock nights={nights} />
-              </div>
+            <div
+              className="flex flex-col items-center"
+              style={{
+                marginTop: `${NIGHTS_GAUGE_OFFSET_PX}px`,
+                gap: `${NIGHTS_GAUGE_BUTTON_GAP_PX}px`,
+              }}
+            >
+              <NightsHalfClock nights={nights} size={NIGHTS_GAUGE_SIZE_PX} />
               <button
                 onClick={onCancel}
                 className="px-6 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition"
