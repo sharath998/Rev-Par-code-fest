@@ -22,9 +22,12 @@ const STORAGE_KEYS = {
 // Helper Functions
 // ═══════════════════════════════════════════════════════════════════════════
 
+// Try localStorage first, then sessionStorage. Some private/incognito browsers
+// disable or throttle localStorage; sessionStorage is more reliable in-session.
 const loadFromStorage = (key, defaultValue = null) => {
   try {
-    const data = localStorage.getItem(key);
+    let data = localStorage.getItem(key);
+    if (data == null) data = sessionStorage.getItem(key);
     return data ? JSON.parse(data) : defaultValue;
   } catch {
     return defaultValue;
@@ -32,10 +35,26 @@ const loadFromStorage = (key, defaultValue = null) => {
 };
 
 const saveToStorage = (key, value) => {
+  const serialized = JSON.stringify(value);
+  let localOk = false;
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    localStorage.setItem(key, serialized);
+    localOk = true;
   } catch (e) {
-    console.error(`Failed to save ${key}:`, e);
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[storage] localStorage.setItem failed for "${key}" — likely incognito/private mode. Falling back to sessionStorage.`,
+      e && e.message
+    );
+  }
+  // Always mirror to sessionStorage as a backup (cheap and helps in private mode)
+  try {
+    sessionStorage.setItem(key, serialized);
+  } catch (e) {
+    if (!localOk) {
+      // eslint-disable-next-line no-console
+      console.error(`[storage] both localStorage and sessionStorage failed for "${key}"`, e);
+    }
   }
 };
 
@@ -71,6 +90,22 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.OFFERS, offers);
   }, [offers]);
+
+  // Cross-tab sync: when another tab updates offers/bookings/current-user in
+  // localStorage, the `storage` event fires here so we can re-hydrate.
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if (e.key === STORAGE_KEYS.OFFERS) {
+        try { setOffers(JSON.parse(e.newValue) || []); } catch { /* ignore */ }
+      } else if (e.key === STORAGE_KEYS.BOOKINGS) {
+        try { setBookings(JSON.parse(e.newValue) || []); } catch { /* ignore */ }
+      } else if (e.key === STORAGE_KEYS.CURRENT_USER) {
+        try { setCurrentUser(JSON.parse(e.newValue)); } catch { /* ignore */ }
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   // ─────────────────────────────────────────────────────────────────────────
   // Realtime: connect to Socket.IO when logged in, receive offers from
@@ -229,12 +264,26 @@ export const AppProvider = ({ children }) => {
     const winners = ranking.slice(0, topK).map((r) => r.userId);
     const offer = {
       ...baseOffer,
+      cancellerId: booking.userId,     // who cancelled — for admin dashboard
       notifiedUserIds: winners,        // who actually gets the push
       candidateUserIds: allCandidates, // the original pool (for admin)
       ranking,                         // full sorted breakdown
     };
 
     setOffers((prev) => [...prev, offer]);
+
+    // Debug log — see what AI ranker picked for this cancellation
+    // eslint-disable-next-line no-console
+    console.log('[cancelBooking] AI ranking for offer', offer.id, {
+      cancelledBy: booking.userId,
+      hotel: offer.hotelName,
+      topK,
+      notifiedUserIds: offer.notifiedUserIds,
+      ranking: offer.ranking.map((r) => ({
+        userId: r.userId,
+        score: Number(r.score.toFixed(3)),
+      })),
+    });
 
     // Fan out to top-K users via Socket.IO (no-op if backend offline)
     try {
@@ -282,14 +331,18 @@ export const AppProvider = ({ children }) => {
   // ─────────────────────────────────────────────────────────────────────────
 
   const getActiveOffersForUser = (userId) => {
+    const uid = String(userId);
     return offers
-      .filter(
-        (offer) =>
-          offer.notifiedUserIds.includes(userId) &&
+      .filter((offer) => {
+        const targets = (offer.notifiedUserIds || []).map(String);
+        const dismissed = (offer.dismissedBy || []).map(String);
+        return (
+          targets.includes(uid) &&
           offer.status === 'active' &&
           !isOfferExpired(offer) &&
-          !offer.dismissedBy?.includes(userId)
-      )
+          !dismissed.includes(uid)
+        );
+      })
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   };
 

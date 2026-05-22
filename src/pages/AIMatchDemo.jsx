@@ -6,6 +6,7 @@ import { getHotelGeo } from '../data/hotelGeo';
 import { rankUsersForOffer } from '../services/ranker';
 import appConfig from '../config/appConfig';
 import AdminLayout from '../admin/components/AdminLayout';
+import { useApp } from '../context/AppContext';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // AI Match Demo Page  —  /ai-match
@@ -212,6 +213,161 @@ const ProfileCard = ({ user }) => {
 
 // ─── main page ─────────────────────────────────────────────────────────────
 
+// ─── Live cancellations panel ──────────────────────────────────────────────
+// Reads real offers (created by users cancelling bookings) from AppContext
+// and shows the actual ranking + notified users that were stored on each.
+
+const userName = (userId) => {
+  const u = users.find((x) => String(x.id) === String(userId));
+  return u ? u.name : `User ${userId}`;
+};
+
+const LiveCancellationsPanel = () => {
+  const { offers } = useApp();
+
+  // Debug: read directly from localStorage AND sessionStorage in case context
+  // is stale or browser is in incognito (localStorage may be blocked).
+  let lsOffers = [];
+  let ssOffers = [];
+  try { lsOffers = JSON.parse(localStorage.getItem('revpar_offers') || '[]'); } catch { lsOffers = []; }
+  try { ssOffers = JSON.parse(sessionStorage.getItem('revpar_offers') || '[]'); } catch { ssOffers = []; }
+
+  // Prefer context, then localStorage, then sessionStorage.
+  const source =
+    (offers && offers.length > 0) ? offers :
+    (lsOffers && lsOffers.length > 0) ? lsOffers :
+    ssOffers;
+
+  const realOffers = useMemo(
+    () =>
+      (source || [])
+        .slice()
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 10),
+    [source]
+  );
+
+  if (realOffers.length === 0) {
+    return (
+      <Card className="p-5">
+        <SectionHeader
+          kicker="Live cancellations"
+          title="No real cancellations yet"
+          subtitle="Cancel a booking from the guest app and the actual ranking + notified users will appear here."
+        />
+        <div className="mt-3 text-[11px] text-dark/50 space-y-1">
+          <p>Context offers count: <b>{(offers || []).length}</b></p>
+          <p>LocalStorage offers count: <b>{lsOffers.length}</b></p>
+          <p>SessionStorage offers count: <b>{ssOffers.length}</b></p>
+          <p>If all are 0, the cancellation did not save. Try a regular (non-incognito) browser window.</p>
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <SectionHeader
+        kicker="Live cancellations"
+        title="Recent real cancellations"
+        subtitle="What the ranker actually decided at the moment each booking was cancelled."
+      />
+      <div className="space-y-3">
+        {realOffers.map((offer) => {
+          const notified = (offer.notifiedUserIds || []).map(String);
+          const topK = notified.length;
+          return (
+            <Card key={offer.id} className="p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Pill variant="neutral">{offer.id}</Pill>
+                    <Pill variant={offer.status === 'active' ? 'gold' : 'muted'}>
+                      {offer.status}
+                    </Pill>
+                  </div>
+                  <p className="font-display text-lg font-semibold text-dark leading-tight">
+                    {offer.hotelName}
+                  </p>
+                  <p className="text-xs text-[#7A7672]">
+                    Cancelled by{' '}
+                    <span className="font-medium text-dark">
+                      {userName(offer.cancellerId)}
+                    </span>
+                    {offer.cancelledAt
+                      ? ` · ${new Date(offer.cancelledAt).toLocaleString()}`
+                      : ''}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] uppercase tracking-wider text-dark/45">
+                    Notified
+                  </p>
+                  <p className="font-display text-2xl font-bold text-dark tabular-nums leading-none">
+                    {topK}
+                  </p>
+                </div>
+              </div>
+
+              {/* Notified winners — exactly what was stored on the offer */}
+              <div className="mb-3">
+                <p className="text-[10px] uppercase tracking-wider text-dark/55 mb-1.5">
+                  Top {topK} notified
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {(offer.notifiedUserIds || []).map((uid, idx) => {
+                    const rankingEntry = (offer.ranking || []).find(
+                      (r) => String(r.userId) === String(uid)
+                    );
+                    return (
+                      <span
+                        key={uid}
+                        className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/15 px-3 py-1 text-xs"
+                      >
+                        <span className="font-semibold text-dark/55">#{idx + 1}</span>
+                        <span className="font-medium text-dark">{userName(uid)}</span>
+                        {rankingEntry ? (
+                          <span className="font-mono tabular-nums text-dark/70">
+                            {Math.round(rankingEntry.score * 100)}
+                          </span>
+                        ) : null}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Skipped candidates */}
+              {(offer.ranking || []).length > topK && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-dark/45 mb-1.5">
+                    Skipped ({(offer.ranking || []).length - topK})
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(offer.ranking || [])
+                      .filter((r) => !notified.includes(String(r.userId)))
+                      .map((r) => (
+                        <span
+                          key={r.userId}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-dark/5 px-2.5 py-0.5 text-[10px] text-dark/55"
+                        >
+                          {userName(r.userId)}
+                          <span className="font-mono tabular-nums">
+                            {Math.round(r.score * 100)}
+                          </span>
+                        </span>
+                      ))}
+                  </div>
+                </div>
+              )}
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 const AIMatchContent = () => {
   // Default scenario: Michael cancels The St. Regis Aspen — Michael lives in
   // Denver so the geo signal is strong for him; for OTHERS the ranking varies.
@@ -283,6 +439,9 @@ const AIMatchContent = () => {
           </p>
         </Card>
       </div>
+
+      {/* Real cancellations from the live app — hidden for now */}
+      {/* <LiveCancellationsPanel /> */}
 
       {/* Scenario controls */}
       <Card className="p-5">
