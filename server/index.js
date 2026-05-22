@@ -22,11 +22,16 @@
 
 const express = require('express');
 const http = require('http');
+const path = require('path');
+const fs = require('fs');
 const cors = require('cors');
 const { Server } = require('socket.io');
 
 const PORT = Number(process.env.PORT || 4000);
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
+// Path to the React production build. By default we look one level up
+// (so the same machine serves both the static React app AND the API).
+const STATIC_DIR = process.env.STATIC_DIR || path.resolve(__dirname, '..', 'build');
 
 const app = express();
 app.use(cors({ origin: CORS_ORIGIN }));
@@ -151,6 +156,24 @@ io.on('connection', (socket) => {
     console.log(`- socket disconnected ${socket.id} (${reason})`);
   });
 });
+
+// ---------------------------------------------------------------
+// Serve the React production build from the same process so a single
+// EC2 box can host both the SPA and the realtime API on one port.
+// Only enabled if /build exists (i.e. you ran `npm run build` first).
+// ---------------------------------------------------------------
+if (fs.existsSync(STATIC_DIR)) {
+  console.log(`serving static SPA from ${STATIC_DIR}`);
+  app.use(express.static(STATIC_DIR, { maxAge: '1d', index: false }));
+  // SPA fallback — any GET that didn't match an API route returns index.html
+  // (HashRouter handles routing client-side after that).
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/socket.io')) return next();
+    res.sendFile(path.join(STATIC_DIR, 'index.html'));
+  });
+} else {
+  console.log(`(no static build at ${STATIC_DIR} — running API only)`);
+}
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`RevPar realtime server listening on http://0.0.0.0:${PORT}`);

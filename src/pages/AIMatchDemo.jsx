@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { users } from '../data/users';
 import { hotels } from '../data/hotels';
 import { getUserProfile } from '../data/userProfiles';
@@ -376,6 +376,88 @@ const AIMatchContent = () => {
 
   const [cancellerId, setCancellerId] = useState(4); // Michael
   const [hotelId, setHotelId] = useState(6);          // St. Regis Aspen
+  const [autoSynced, setAutoSynced] = useState(null); // { offerId, at, hotelName, cancellerName }
+
+  // ─── Auto-populate scenario from the most recent real cancellation ──────
+  // Whenever the user (or another user) actually cancels a booking, the offer
+  // is added to AppContext.offers. We watch that list and snap the scenario
+  // dropdowns to the latest cancellation so the panel always reflects what
+  // really happened. Manual dropdown changes are NOT overridden unless a
+  // newer cancellation comes in.
+  const { offers: liveOffers } = useApp();
+  const lastOfferId = useMemo(() => {
+    if (!Array.isArray(liveOffers) || liveOffers.length === 0) return null;
+    // Map each offer to a numeric timestamp; filter out anything without a
+    // valid createdAt (e.g. seed/smoke-test offers in localStorage) so a NaN
+    // comparator can't scramble the sort order.
+    const withTs = liveOffers
+      .map((o) => ({
+        offer: o,
+        ts: o && o.createdAt ? new Date(o.createdAt).getTime() : NaN,
+      }))
+      .filter((x) => Number.isFinite(x.ts) && x.ts > 0);
+    if (withTs.length === 0) return null;
+    withTs.sort((a, b) => b.ts - a.ts);
+    return withTs[0].offer;
+  }, [liveOffers]);
+
+  useEffect(() => {
+    if (!lastOfferId) return;
+    if (autoSynced && autoSynced.offerId === lastOfferId.id) return; // already synced
+
+    // Try multiple field names for backwards compat with older offers in
+    // localStorage that may have been written before cancellerId was added.
+    let rawCanceller =
+      lastOfferId.cancellerId != null ? lastOfferId.cancellerId
+      : lastOfferId.canceller   != null ? lastOfferId.canceller
+      : lastOfferId.userId      != null ? lastOfferId.userId
+      : null;
+
+    // Legacy fallback: pre-AI offers stored `notifiedUserIds` = every user
+    // EXCEPT the canceller. If that array has (users.length - 1) entries we
+    // can recover canceller as the missing one.
+    if (rawCanceller == null && Array.isArray(lastOfferId.notifiedUserIds)) {
+      const notifiedSet = new Set(lastOfferId.notifiedUserIds.map(String));
+      if (notifiedSet.size === users.length - 1) {
+        const missing = users.find((u) => !notifiedSet.has(String(u.id)));
+        if (missing) rawCanceller = missing.id;
+      }
+    }
+
+    // hotelId is set by generateOffer; fall back to looking it up by name.
+    let rawHotel = lastOfferId.hotelId;
+    if (rawHotel == null && lastOfferId.hotelName) {
+      const match = hotels.find((h) => h.name === lastOfferId.hotelName);
+      rawHotel = match ? match.id : null;
+    }
+
+    const newCancellerId = rawCanceller != null ? Number(rawCanceller) : NaN;
+    const newHotelId = rawHotel != null ? Number(rawHotel) : NaN;
+
+    if (Number.isFinite(newCancellerId)) setCancellerId(newCancellerId);
+    if (Number.isFinite(newHotelId)) setHotelId(newHotelId);
+
+    const u = Number.isFinite(newCancellerId)
+      ? users.find((x) => Number(x.id) === newCancellerId)
+      : null;
+
+    const resolvedHotelName =
+      lastOfferId.hotelName ||
+      (Number.isFinite(newHotelId)
+        ? (hotels.find((h) => h.id === newHotelId) || {}).name
+        : 'Unknown hotel');
+
+    setAutoSynced({
+      offerId: lastOfferId.id,
+      at: lastOfferId.createdAt,
+      hotelName: resolvedHotelName || 'Unknown hotel',
+      cancellerName: u
+        ? u.name
+        : Number.isFinite(newCancellerId)
+        ? `User ${newCancellerId}`
+        : 'Unknown user',
+    });
+  }, [lastOfferId, autoSynced]);
 
   const hotel = useMemo(() => hotels.find((h) => h.id === Number(hotelId)) || hotels[0], [hotelId]);
   const room = (hotel && hotel.rooms && hotel.rooms[0]) || { type: 'Deluxe', price: 800 };
@@ -450,6 +532,26 @@ const AIMatchContent = () => {
           title="Simulate a cancellation"
           subtitle="Pick who is cancelling and which hotel. The ranker reruns automatically."
         />
+
+        {/* Live cancellation sync banner */}
+        {autoSynced ? (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-gold/30 bg-gold/10 px-3 py-2">
+            <div className="flex items-center gap-2 text-[12px] text-dark/80">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-gold" />
+              </span>
+              <span>
+                Synced from latest live cancellation:{' '}
+                <span className="font-semibold">{autoSynced.cancellerName}</span>{' '}
+                cancelled <span className="font-semibold">{autoSynced.hotelName}</span>
+              </span>
+            </div>
+            <span className="text-[10px] uppercase tracking-wider text-dark/45">
+              {autoSynced.offerId}
+            </span>
+          </div>
+        ) : null}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="block">

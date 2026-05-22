@@ -22,14 +22,19 @@ export const appConfig = {
     gold: '#CBA135',
   },
 
-  // Realtime backend (Socket.IO). Override at build time via REACT_APP_SOCKET_URL
-  //   Web dev:          http://localhost:4000
-  //   Android emulator: http://10.0.2.2:4000
-  //   Real device:      http://<your-mac-LAN-IP>:4000
+  // Realtime backend (Socket.IO). Override at build time via REACT_APP_SOCKET_URL.
+  //   Local dev:         REACT_APP_SOCKET_URL=http://localhost:4000 npm start
+  //   Android emulator:  REACT_APP_SOCKET_URL=http://10.0.2.2:4000  npm run build
+  //   Same-origin prod:  leave UNSET when running `npm run build` and let the
+  //                      Node server serve both the SPA and Socket.IO together.
+  //                      An empty string makes socket.io-client default to
+  //                      `window.location.origin`, which is what we want for a
+  //                      single-EC2-box deployment with an Elastic IP.
+  //
   // NOTE: CRA only inlines exact `process.env.REACT_APP_*` accessors at build
   // time; do NOT wrap in `typeof process !== 'undefined'` or substitution
   // breaks silently and you'll get `undefined`.
-  socketUrl: process.env.REACT_APP_SOCKET_URL || 'http://10.0.2.2:4000',
+  socketUrl: process.env.REACT_APP_SOCKET_URL || '',
 
   // ─── AI matching: when a booking is cancelled, only notify the top-K most
   //     relevant users instead of broadcasting to everyone. ────────────────

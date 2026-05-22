@@ -34,6 +34,36 @@ const loadFromStorage = (key, defaultValue = null) => {
   }
 };
 
+// CURRENT_USER lives in sessionStorage (per-tab) so two windows can be
+// logged in as different users for cross-user demos. Bookings + offers
+// remain in localStorage (shared across tabs) so users still see each
+// other's cancellations.
+const loadCurrentUser = () => {
+  try {
+    const data = sessionStorage.getItem(STORAGE_KEYS.CURRENT_USER);
+    return data ? JSON.parse(data) : null;
+  } catch {
+    return null;
+  }
+};
+
+const saveCurrentUser = (user) => {
+  try {
+    if (user) sessionStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
+    else sessionStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn('[storage] sessionStorage write failed for current user', e && e.message);
+  }
+  // Belt-and-suspenders: remove any legacy localStorage copy so it can't
+  // leak the wrong user into a freshly-opened tab.
+  try {
+    localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+  } catch (_) {
+    /* ignore */
+  }
+};
+
 const saveToStorage = (key, value) => {
   const serialized = JSON.stringify(value);
   let localOk = false;
@@ -74,13 +104,13 @@ const sanitizeUser = (user) => {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const AppProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(() => loadFromStorage(STORAGE_KEYS.CURRENT_USER));
+  const [currentUser, setCurrentUser] = useState(() => loadCurrentUser());
   const [bookings, setBookings] = useState(() => loadFromStorage(STORAGE_KEYS.BOOKINGS, []));
   const [offers, setOffers] = useState(() => loadFromStorage(STORAGE_KEYS.OFFERS, []));
 
-  // Persist to localStorage
+  // Persist current user to sessionStorage (per-tab — see helper notes above)
   useEffect(() => {
-    saveToStorage(STORAGE_KEYS.CURRENT_USER, currentUser);
+    saveCurrentUser(currentUser);
   }, [currentUser]);
 
   useEffect(() => {
@@ -95,12 +125,13 @@ export const AppProvider = ({ children }) => {
   // localStorage, the `storage` event fires here so we can re-hydrate.
   useEffect(() => {
     const handleStorage = (e) => {
+      // Note: CURRENT_USER intentionally NOT synced cross-tab — each browser
+      // tab keeps its own login (sessionStorage) so multiple users can be
+      // demoed side-by-side in the same browser profile.
       if (e.key === STORAGE_KEYS.OFFERS) {
         try { setOffers(JSON.parse(e.newValue) || []); } catch { /* ignore */ }
       } else if (e.key === STORAGE_KEYS.BOOKINGS) {
         try { setBookings(JSON.parse(e.newValue) || []); } catch { /* ignore */ }
-      } else if (e.key === STORAGE_KEYS.CURRENT_USER) {
-        try { setCurrentUser(JSON.parse(e.newValue)); } catch { /* ignore */ }
       }
     };
     window.addEventListener('storage', handleStorage);

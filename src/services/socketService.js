@@ -30,11 +30,11 @@ export function connectSocket(userId) {
     disconnectSocket();
   }
 
+  // Empty / unset socketUrl = connect to the page's own origin. This is
+  // what we want in production when one EC2 box serves both the SPA and
+  // the Socket.IO API.
   const url = appConfig.socketUrl;
-  // eslint-disable-next-line no-console
-  console.log('[socket] connecting to', url, 'as user', userId);
-
-  socket = io(url, {
+  const ioOptions = {
     transports: ['websocket', 'polling'],
     reconnection: true,
     reconnectionAttempts: Infinity,
@@ -42,7 +42,11 @@ export function connectSocket(userId) {
     reconnectionDelayMax: 8000,
     timeout: 8000,
     autoConnect: true,
-  });
+  };
+
+  // eslint-disable-next-line no-console
+  console.log('[socket] connecting to', url || '(same origin)', 'as user', userId);
+  socket = url ? io(url, ioOptions) : io(ioOptions);
 
   currentUserId = userId;
 
