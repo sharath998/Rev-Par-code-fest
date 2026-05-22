@@ -21,6 +21,36 @@ export const appConfig = {
     dark: '#2C2C2C',
     gold: '#CBA135',
   },
+
+  // Realtime backend (Socket.IO). Override at build time via REACT_APP_SOCKET_URL
+  //   Web dev:          http://localhost:4000
+  //   Android emulator: http://10.0.2.2:4000
+  //   Real device:      http://<your-mac-LAN-IP>:4000
+  // NOTE: CRA only inlines exact `process.env.REACT_APP_*` accessors at build
+  // time; do NOT wrap in `typeof process !== 'undefined'` or substitution
+  // breaks silently and you'll get `undefined`.
+  socketUrl: process.env.REACT_APP_SOCKET_URL || 'http://10.0.2.2:4000',
+
+  // ─── AI matching: when a booking is cancelled, only notify the top-K most
+  //     relevant users instead of broadcasting to everyone. ────────────────
+  topK: 2,
+  rankerWeights: {
+    // Top-level blend (should roughly sum to 1)
+    W_recency:   0.30,
+    W_geo:       0.20,
+    W_pref:      0.20,
+    W_affinity:  0.20,
+    W_localTime: 0.10,
+
+    // Inside the recency sub-score
+    recencySubWeights: { r24: 0.50, r2d: 0.30, r7d: 0.20 },
+
+    // Inside the preferences sub-score
+    preferenceSubWeights: { city: 0.5, price: 0.3, amenities: 0.2 },
+
+    // Geo: distance at which geo score = 0.5
+    geoHalfDistanceKm: 1500,
+  },
 };
 
 export default appConfig;

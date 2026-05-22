@@ -1,8 +1,15 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useApp } from '../../context/AppContext';
 
 const AdminSidebar = () => {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useApp();
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const navItems = [
     {
@@ -13,12 +20,24 @@ const AdminSidebar = () => {
             d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
       ),
-      label: 'Last-Minute Offers',
+      label: 'Dashboard',
+    },
+    {
+      to: '/admin/ai-match',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
+            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m12.728 0a9 9 0 11-12.728 0 9 9 0 0112.728 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
+            d="M12 17v2m-3 1h6" />
+        </svg>
+      ),
+      label: 'AI Match',
     },
   ];
 
   return (
-    <aside className="hidden lg:flex flex-col w-60 bg-[#2C2C2C] min-h-screen">
+    <aside className="flex flex-col w-60 bg-[#2C2C2C] min-h-screen">
       {/* Logo */}
       <div className="px-6 py-6 border-b border-white/10">
         <Link to="/" className="flex items-center gap-3">
@@ -55,18 +74,20 @@ const AdminSidebar = () => {
         })}
       </nav>
 
-      {/* Back to site */}
+      {/* Logout */}
       <div className="px-3 py-4 border-t border-white/10">
-        <Link
-          to="/"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-400
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-400
                      hover:bg-white/10 hover:text-white transition-all"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
-          Back to Site
-        </Link>
+          Logout
+        </button>
       </div>
     </aside>
   );

@@ -24,7 +24,7 @@ const Login = () => {
     const result = login(credentials.username, credentials.password);
 
     if (result.success) {
-      navigate('/hotels');
+      navigate(result.isAdmin ? '/admin/offers' : '/hotels');
       return;
     }
 
@@ -134,6 +134,13 @@ const Login = () => {
                   <p className="text-xs uppercase tracking-[0.18em] text-white/45">Offers</p>
                   <p className="mt-2 font-display text-3xl">Live</p>
                 </div>
+              </div>
+
+              {/* Demo credentials hint */}
+              <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/55">
+                <span className="font-semibold uppercase tracking-[0.18em] text-white/45">Demo:</span>{' '}
+                guest <code className="text-white/80">sarah.m</code>/<code className="text-white/80">RevPar@123</code>{' '}
+                · admin <code className="text-gold">admin</code>/<code className="text-gold">admin</code>
               </div>
             </div>
           </div>
