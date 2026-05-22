@@ -106,6 +106,10 @@ const HotelDetails = () => {
   const isOfferRoomSelected = Boolean(offer && selectedRoom?.type === offer.roomType);
   const bookingPrice = isOfferRoomSelected ? offer.discountedPrice : selectedRoom?.price;
 
+  // Today's date in YYYY-MM-DD format for <input type="date" min={...} />
+  const today = new Date().toISOString().split('T')[0];
+  const minCheckOut = bookingDates.checkIn || today;
+
   const handleBookNow = () => {
     if (!selectedRoom) {
       alert('Please select a room type');
@@ -310,21 +314,24 @@ const HotelDetails = () => {
             type="text"
             placeholder="Full Name"
             value={guestDetails.name}
-            onChange={(e) => setGuestDetails({ ...guestDetails, name: e.target.value })}
-            className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold"
+            disabled
+            readOnly
+            className="px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
           />
           <input
             type="email"
             placeholder="Email"
             value={guestDetails.email}
-            onChange={(e) => setGuestDetails({ ...guestDetails, email: e.target.value })}
-            className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold"
+            disabled
+            readOnly
+            className="px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
           />
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Check-in Date</label>
             <input
               type="date"
               value={bookingDates.checkIn}
+              min={today}
               onChange={(e) => setBookingDates({ ...bookingDates, checkIn: e.target.value })}
               disabled={Boolean(offer)}
               className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold ${
@@ -337,6 +344,7 @@ const HotelDetails = () => {
             <input
               type="date"
               value={bookingDates.checkOut}
+              min={minCheckOut}
               onChange={(e) => setBookingDates({ ...bookingDates, checkOut: e.target.value })}
               disabled={Boolean(offer)}
               className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold ${

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useCountdown } from '../hooks/useCountdown';
 import appConfig from '../config/appConfig';
-import MatchInsightsCard from '../components/notifications/MatchInsightsCard';
 
 const CancellationModal = ({ booking, onConfirm, onCancel }) => {
   const cancellationFee = booking.room.price * appConfig.cancellationFeeDays;
@@ -557,7 +556,6 @@ const Overview = () => {
   const { currentUser, getUserBookings, getActiveOffersForUser, cancelBooking, dismissOffer } = useApp();
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState(null);
-  const [insights, setInsights] = useState(null);
 
   const userBookings = getUserBookings(currentUser?.id);
   const activeBooking = userBookings[0] || null;
@@ -575,13 +573,6 @@ const Overview = () => {
       if (result.success) {
         setShowCancelModal(false);
         setBookingToCancel(null);
-        // Pop the AI match insights card for the canceller
-        if (result.offer && Array.isArray(result.offer.ranking)) {
-          setInsights({
-            ranking: result.offer.ranking,
-            notifiedIds: result.offer.notifiedUserIds,
-          });
-        }
       }
     }
   };
@@ -684,14 +675,7 @@ const Overview = () => {
         />
       )}
 
-      {/* AI Match Insights — shown to the canceller right after cancellation */}
-      {insights && (
-        <MatchInsightsCard
-          ranking={insights.ranking}
-          notifiedIds={insights.notifiedIds}
-          onDismiss={() => setInsights(null)}
-        />
-      )}
+
     </div>
   );
 };
