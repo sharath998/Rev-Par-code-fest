@@ -47,6 +47,13 @@ module.exports = {
         'splash-out': 'splashOut 0.35s ease-in forwards',
         'shimmer': 'shimmer 3.5s ease-in-out infinite',
         'pulse-gold': 'pulseGold 2.2s ease-in-out infinite',
+        'shimmer': 'shimmer 3s linear infinite',
+        'glow-pulse': 'glowPulse 2.4s ease-in-out infinite',
+        'gradient-shift': 'gradientShift 6s ease infinite',
+        'flash-pulse': 'flashPulse 1.6s ease-in-out infinite',
+        'flame': 'flame 0.7s ease-in-out infinite alternate',
+        'urgent-pulse': 'urgentPulse 1s ease-in-out infinite',
+        'savings-pop': 'savingsPop 2s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -69,6 +76,33 @@ module.exports = {
         pulseGold: {
           '0%, 100%': { boxShadow: '0 0 0 0 rgba(203,161,53,0.45)' },
           '50%':       { boxShadow: '0 0 0 10px rgba(203,161,53,0)' },
+        shimmer: {
+          '0%':   { transform: 'translateX(-120%) skewX(-12deg)' },
+          '100%': { transform: 'translateX(220%) skewX(-12deg)' },
+        },
+        glowPulse: {
+          '0%, 100%': { boxShadow: '0 0 24px 0 rgba(203,161,53,0.45), 0 0 0 0 rgba(203,161,53,0.0)' },
+          '50%':      { boxShadow: '0 0 48px 6px rgba(203,161,53,0.85), 0 0 0 4px rgba(203,161,53,0.25)' },
+        },
+        gradientShift: {
+          '0%, 100%': { backgroundPosition: '0% 50%' },
+          '50%':      { backgroundPosition: '100% 50%' },
+        },
+        flashPulse: {
+          '0%, 100%': { transform: 'scale(1)',   boxShadow: '0 0 0 0 rgba(255,90,30,0.7)' },
+          '50%':      { transform: 'scale(1.06)', boxShadow: '0 0 0 10px rgba(255,90,30,0)' },
+        },
+        flame: {
+          '0%':   { transform: 'translateY(0) scale(1) rotate(-3deg)',  opacity: '0.95' },
+          '100%': { transform: 'translateY(-1px) scale(1.12) rotate(3deg)', opacity: '1' },
+        },
+        urgentPulse: {
+          '0%, 100%': { color: '#ffffff', textShadow: '0 0 0 rgba(255,80,80,0)' },
+          '50%':      { color: '#FF6B6B', textShadow: '0 0 12px rgba(255,80,80,0.85)' },
+        },
+        savingsPop: {
+          '0%, 100%': { transform: 'rotate(-3deg) scale(1)' },
+          '50%':      { transform: 'rotate(-3deg) scale(1.08)' },
         },
       },
     },
