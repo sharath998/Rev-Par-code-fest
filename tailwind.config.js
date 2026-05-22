@@ -47,7 +47,6 @@ module.exports = {
         'splash-out': 'splashOut 0.35s ease-in forwards',
         'shimmer': 'shimmer 3.5s ease-in-out infinite',
         'pulse-gold': 'pulseGold 2.2s ease-in-out infinite',
-        'shimmer': 'shimmer 3s linear infinite',
         'glow-pulse': 'glowPulse 2.4s ease-in-out infinite',
         'gradient-shift': 'gradientShift 6s ease infinite',
         'flash-pulse': 'flashPulse 1.6s ease-in-out infinite',
@@ -71,14 +70,11 @@ module.exports = {
         },
         shimmer: {
           '0%, 100%': { backgroundPosition: '0% 50%' },
-          '50%':       { backgroundPosition: '100% 50%' },
+          '50%':      { backgroundPosition: '100% 50%' },
         },
         pulseGold: {
           '0%, 100%': { boxShadow: '0 0 0 0 rgba(203,161,53,0.45)' },
-          '50%':       { boxShadow: '0 0 0 10px rgba(203,161,53,0)' },
-        shimmer: {
-          '0%':   { transform: 'translateX(-120%) skewX(-12deg)' },
-          '100%': { transform: 'translateX(220%) skewX(-12deg)' },
+          '50%':      { boxShadow: '0 0 0 10px rgba(203,161,53,0)' },
         },
         glowPulse: {
           '0%, 100%': { boxShadow: '0 0 24px 0 rgba(203,161,53,0.45), 0 0 0 0 rgba(203,161,53,0.0)' },
